@@ -201,6 +201,7 @@ export default function Archive() {
 
 function QuestionRow({ q, index }) {
   const [revealed, setRevealed] = useState(false)
+  const [hintsShown, setHintsShown] = useState(false)
   const total = (q.answer_parts || []).reduce(
     (s, p) => s + (Number(p.points) || 0),
     q.points || 0
@@ -213,9 +214,18 @@ function QuestionRow({ q, index }) {
         </strong>
       </p>
       {q.hints.length > 0 && (
-        <p className="subtle" style={{ margin: '0 0 8px' }}>
-          Hints: {q.hints.join(' · ')}
-        </p>
+        <div className="row" style={{ margin: '0 0 8px' }}>
+          <button
+            type="button"
+            className="btn ghost sm"
+            onClick={() => setHintsShown((h) => !h)}
+          >
+            {hintsShown ? 'Hide hint' : `Reveal hint (${q.hints.length})`}
+          </button>
+          {hintsShown && (
+            <span className="pill warn">{q.hints.join(' · ')}</span>
+          )}
+        </div>
       )}
       <div className="row">
         <button
