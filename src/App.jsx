@@ -8,6 +8,7 @@ import AdminOnly from './components/AdminOnly'
 import Login from './pages/Login'
 import RoleSelect from './pages/RoleSelect'
 import PlayerHome from './pages/PlayerHome'
+import Archive from './pages/Archive'
 import History from './pages/History'
 import Leaderboard from './pages/Leaderboard'
 import Profile from './pages/Profile'
@@ -27,6 +28,7 @@ function Shell() {
           <Route path="/role" element={<RoleSelect />} />
           <Route element={<Protected />}>
             <Route path="/" element={<PlayerHome />} />
+            <Route path="/archive" element={<Archive />} />
             <Route path="/history" element={<History />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />

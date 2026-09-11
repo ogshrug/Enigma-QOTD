@@ -16,7 +16,7 @@ export default function GradeAnswers() {
   async function fetchData() {
     const { data, error } = await supabase
       .from('answers')
-      .select('*, questions(text, points, answer_parts)')
+      .select('*, questions(text, points, answer_parts), profiles(name, class_section)')
       .order('created_at', { ascending: false })
     if (error) setError(error.message)
     else {
@@ -152,8 +152,31 @@ export default function GradeAnswers() {
 
   function answerRow(a) {
     const multi = multipleParts(a)
+    const p = a.profiles
+    const pInitials = (p?.name || p?.email || '?')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? '')
+      .join('')
+    const answeredAt = new Date(a.created_at).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
     return (
       <li key={a.id} className="grade-item">
+        <div className="answered-by">
+          <span className="aw-avatar" aria-hidden="true">
+            {pInitials}
+          </span>
+          <span className="aw-who">
+            <strong>{p?.name || 'Anonymous'}</strong>
+            {p?.class_section ? <span className="pill neutral">{p.class_section}</span> : null}
+          </span>
+          <span className="aw-when muted">{answeredAt}</span>
+        </div>
         <p>
           <strong><RichText text={a.questions?.text ?? 'Unknown question'} /></strong>
         </p>
