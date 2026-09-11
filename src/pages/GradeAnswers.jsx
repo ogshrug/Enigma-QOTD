@@ -16,7 +16,7 @@ export default function GradeAnswers() {
   async function fetchData() {
     const { data, error } = await supabase
       .from('answers')
-      .select('*, questions(text, points, answer_parts), profiles(name, class_section)')
+      .select('*, questions(text, points, answer_parts), profiles!answers_profile_id_fkey(name, class_section)')
       .order('created_at', { ascending: false })
     if (error) setError(error.message)
     else {
