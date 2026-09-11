@@ -42,7 +42,7 @@ export default function AdminDashboard() {
     setResetMsg('')
     const { error } = await supabase.rpc('reset_quiz', { reset_passphrase: phrase.trim() })
     if (error) {
-      setResetMsg('Wrong passphrase or something went wrong — nothing was deleted.')
+      setResetMsg(`Reset failed — ${error.message}. Nothing was deleted.`)
       setResetting(false)
       return
     }
