@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { uploadToMediaBucket } from '../lib/upload'
 import { todayStr } from './PlayerHome'
+import DatePicker from '../components/DatePicker'
 
 export default function NewQuestion() {
   const navigate = useNavigate()
@@ -10,7 +11,7 @@ export default function NewQuestion() {
   const [text, setText] = useState('')
   const [position, setPosition] = useState(0)
   const [date, setDate] = useState(todayStr())
-  const [parts, setParts] = useState([{ text: '', points: 1 }])
+  const [parts, setParts] = useState([{ text: '', points: 10 }])
   const [explanation, setExplanation] = useState('')
   const [active, setActive] = useState(true)
 
@@ -58,7 +59,7 @@ export default function NewQuestion() {
   async function handleSubmit(e) {
     e.preventDefault()
     const validParts = parts
-      .map((p) => ({ text: p.text.trim(), points: Math.max(1, Number(p.points) || 1) }))
+      .map((p) => ({ text: p.text.trim(), points: Math.max(10, Number(p.points) || 10) }))
       .filter((p) => p.text)
     if (!text.trim() || !date || validParts.length === 0) return
     setBusy(true)
@@ -216,11 +217,11 @@ export default function NewQuestion() {
             />
             <input
               type="number"
-              min={1}
+              min={10}
               style={{ ...inputStyle, width: 90, flexShrink: 0 }}
               value={part.points}
               onChange={(e) => updatePart(i, 'points', e.target.value)}
-              title="Points for this part"
+              title="Minimum 10 points for this part"
             />
             <button
               type="button"
@@ -235,13 +236,15 @@ export default function NewQuestion() {
         <button
           type="button"
           className="btn ghost"
-          onClick={() => setParts((prev) => [...prev, { text: '', points: 1 }])}
+          onClick={() => setParts((prev) => [...prev, { text: '', points: 10 }])}
         >
           + Add answer part
         </button>
         <p className="muted" style={{ fontSize: 13 }}>
-          Total points: <strong>{totalPoints || 1}</strong>. Full points are auto-awarded
-          only when the answer covers every part; otherwise it's flagged for review.
+          Each part is worth at least <strong>10 pts</strong>. Total:{' '}
+          <strong>{totalPoints || 10}</strong>. Full points are auto-awarded only
+          when the answer covers every part; otherwise it's flagged for review.
+          A hint costs the player 2 pts.
         </p>
 
         <label htmlFor="explanation" style={labelStyle}>
@@ -258,15 +261,8 @@ export default function NewQuestion() {
         <label htmlFor="date" style={labelStyle}>
           Date (players will see it on this day)
         </label>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            id="date"
-            type="date"
-            style={inputStyle}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <DatePicker id="date" value={date} onChange={setDate} />
           <label htmlFor="position" className="muted" style={{ margin: 0, whiteSpace: 'nowrap', fontSize: 12 }}>
             Order:
           </label>
