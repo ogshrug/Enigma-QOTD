@@ -212,6 +212,8 @@ insert into public.admin_secrets (passphrase)
 values ('headboyaarav')
 on conflict (id) do nothing;
 
+alter table public.admin_secrets add column if not exists reset_passphrase text not null default 'baloonneetsinghbhatia';
+
 create or replace function public.create_admin_profile(passphrase text)
 returns uuid
 language plpgsql
@@ -248,6 +250,40 @@ begin
 end;
 $$;
 
+-- Reset quiz: deletes all answers, all questions, and all uploaded media.
+-- Keeps player/admin accounts and the admin secrets. The reset passphrase is
+-- verified here (never revealed to the client) and the caller must be an admin.
+create or replace function public.reset_quiz(reset_passphrase text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  expected text;
+begin
+  if auth.uid() is null then
+    raise exception 'you must be signed in';
+  end if;
+
+  if not public.is_admin() then
+    raise exception 'INCORRECT_PASSPHRASE';
+  end if;
+
+  select s.reset_passphrase into expected
+  from public.admin_secrets s
+  where s.id = 1;
+  if reset_passphrase is distinct from expected then
+    raise exception 'INCORRECT_PASSPHRASE';
+  end if;
+
+  delete from public.answers;
+  delete from public.questions;
+end;
+$$;
+
+grant execute on function public.reset_quiz(text) to authenticated;
+
 -- ---------------------------------------------------------------------------
 -- Media storage (images, video, audio)
 -- ---------------------------------------------------------------------------
@@ -262,6 +298,11 @@ create policy "media_public_read" on storage.objects
 drop policy if exists "media_auth_upload" on storage.objects;
 create policy "media_auth_upload" on storage.objects
   for insert with check (bucket_id = 'media' and auth.role() = 'authenticated');
+
+-- Admins can delete media files (used by the reset-quiz flow).
+drop policy if exists "media_admin_delete" on storage.objects;
+create policy "media_admin_delete" on storage.objects
+  for delete using (bucket_id = 'media' and public.is_admin());
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security
