@@ -48,40 +48,42 @@ export default function GradeAnswers() {
   }
 
   function questionTotal(q) {
-    if (isMultiple(q)) return q.answer_parts.reduce((s, p) => s + (Number(p.points) || 0), 0)
+    if (isMultiple(q))
+      return q.answer_parts.reduce((s, p) => s + (Number(p.points) || 0), 0)
     if (Array.isArray(q?.answer_parts) && q.answer_parts.length === 1)
       return Number(q.answer_parts[0].points) || 0
     return q?.points ?? 1
   }
 
   function marksFor(a) {
-    const arr = marks[a.id]
-    if (arr) return arr
-    return (a.questions?.answer_parts ?? []).map(() => false)
+    if (marks[a.id]) return marks[a.id]
+    const len = a.questions?.answer_parts?.length ?? 0
+    return Array(len).fill(false)
   }
 
-  function markedSum(a) {
+  function marksSum(a) {
     return marksFor(a).reduce(
       (s, on, i) => s + (on ? partWorth(a, i) : 0),
       0
     )
   }
 
-  function gradedPoints(a) {
-    const sums = markedSum(a)
-    return sums - 2 * (a.hints_used ?? 0)
+  function pointsAfterHints(a) {
+    const sum = marksSum(a)
+    return sum - 2 * (a.hints_used ?? 0)
   }
 
-  async function togglePart(a, i, on) {
-    const qParts = a.questions?.answer_parts ?? []
+  function togglePart(a, i, on) {
     const arr = marksFor(a).slice()
-    if (arr[i] === on) return
     arr[i] = on
-    setMarks((m) => ({ ...m, [a.id]: arr }))
+    setMarks((prev) => ({ ...prev, [a.id]: arr }))
+  }
+
+  async function submitMulti(a) {
     setBusyId(a.id)
     setError('')
-    const sum = arr.reduce((s, onVal, idx) => s + (onVal ? partWorth(a, idx) : 0), 0)
-    const points = sum - 2 * (a.hints_used ?? 0)
+    const points = pointsAfterHints(a)
+    const sum = marksSum(a)
     const { error } = await supabase
       .from('answers')
       .update({
@@ -94,8 +96,8 @@ export default function GradeAnswers() {
       })
       .eq('id', a.id)
     if (error) setError(error.message)
-    setBusyId('')
     await fetchData()
+    setBusyId('')
   }
 
   async function gradeSingle(id, correct, answerRow) {
@@ -138,7 +140,7 @@ export default function GradeAnswers() {
         {multi ? (
           <div className="part-grade-list">
             {multi.qParts.map((p, i) => {
-              const worth = Math.max(0, Number(p.points) || 0)
+              const worth = partWorth(a, i)
               const on = marksFor(a)[i]
               const interactive = a.status === 'pending'
               return (
@@ -151,17 +153,17 @@ export default function GradeAnswers() {
                     You answered:
                   </p>
                   <p style={{ margin: '0 0 8px' }}>{multi.segs[i] || '—'}</p>
-                  <p className="subtle" style={{ margin: '0 0 8px', fontSize: 12 }}>
+                  <p className="subtle" style={{ margin: 0, fontSize: 12 }}>
                     Accepts: “{p.text || '—'}”
                   </p>
                   {interactive ? (
-                    <div className="row" style={{ margin: 0 }}>
+                    <div className="row" style={{ margin: '8px 0 0' }}>
                       <button
+                        type="button"
                         className={`btn sm ${on ? 'good' : 'ghost'}`}
-                        disabled={busyId === a.id}
                         onClick={() => togglePart(a, i, !on)}
                       >
-                        {on ? 'Awarded' : `Award`}
+                        {on ? 'Awarded' : 'Award'}
                       </button>
                       <span className="pill neutral">+{worth}</span>
                     </div>
@@ -170,11 +172,19 @@ export default function GradeAnswers() {
               )
             })}
             {a.status === 'pending' && (
-              <div className="grade-summary">
-                <span className={gradedPoints(a) > 0 ? 'pill good' : 'pill neutral'}>
-                  Earns {gradedPoints(a) >= 0 ? `+${gradedPoints(a)}` : gradedPoints(a)} pts
+              <div className="row between" style={{ margin: 0 }}>
+                <span className={marksSum(a) > 0 ? 'pill good' : 'pill neutral'}>
+                  Earns {pointsAfterHints(a) >= 0 ? `+${pointsAfterHints(a)}` : pointsAfterHints(a)} pts
                   {a.hints_used > 0 ? ` (after ${a.hints_used} hint${a.hints_used > 1 ? 's' : ''})` : ''}
                 </span>
+                <button
+                  type="button"
+                  className="btn sm"
+                  disabled={busyId === a.id}
+                  onClick={() => submitMulti(a)}
+                >
+                  Save grade
+                </button>
               </div>
             )}
           </div>
@@ -225,9 +235,13 @@ export default function GradeAnswers() {
                   +{a.points_earned}/{questionTotal(a.questions)} pts
                 </span>
               ) : a.points_earned < 0 ? (
-                <span className="pill bad">{a.points_earned}/{questionTotal(a.questions)} pts</span>
+                <span className="pill bad">
+                  {a.points_earned}/{questionTotal(a.questions)} pts
+                </span>
               ) : (
-                <span className="pill neutral">0/{questionTotal(a.questions)} pts</span>
+                <span className="pill neutral">
+                  0/{questionTotal(a.questions)} pts
+                </span>
               ))}
           </div>
         </div>
