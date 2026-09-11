@@ -102,6 +102,7 @@ html {
 
 body {
   margin: 0;
+  overflow-x: hidden;
   font-family: var(--font-body);
   background: var(--surface-dim);
   background-image:
@@ -695,14 +696,18 @@ label {
    ============================================================ */
 .countdown {
   display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px 10px;
   padding: 7px 16px;
   border-radius: var(--radius-pill);
   background: var(--brand-softer);
   border: 1px solid rgba(18, 117, 226, 0.35);
   color: #cfe3ff;
   font-weight: 600;
+  max-width: 100%;
+  text-align: center;
 }
 
 .countdown-label {
@@ -1421,20 +1426,6 @@ textarea:focus-visible,
     border-radius: 14px;
   }
 
-  .metric-card {
-    flex: 1 1 calc(50% - 6px);
-    min-width: 0;
-    padding: var(--space-4);
-  }
-
-  .metric-card .metric-value {
-    font-size: 28px;
-  }
-
-  .metric-card.reset .metric-value {
-    font-size: 22px;
-  }
-
   .row .btn {
     flex: 1 1 auto;
   }
@@ -1451,31 +1442,157 @@ textarea:focus-visible,
   .hero-wrap {
     --container-pad-y: 12px;
     margin-top: -12px;
-    padding-top: 40px;
+    padding-top: 36px;
   }
 
+.hero-title {
+  font-size: 38px;
+}
+
+.hero-logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  margin-bottom: var(--space-4);
+}
+
+.hero-kicker {
+  font-size: 12px;
+  padding: 5px 12px;
+}
+
+.hero-sub {
+  font-size: var(--text-base);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.hero-actions {
+  width: 100%;
+  max-width: 400px;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.hero-tiles {
+  grid-template-columns: 1fr;
+  max-width: 400px;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.hero-tile {
+  flex-direction: row;
+  align-items: center;
+  padding: var(--space-4);
+}
+
+.hero-tile .orb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.btn.xl {
+  width: 100%;
+  min-height: 52px;
+}
+
+.hero .countdown {
+  margin-bottom: var(--space-4);
+}
+
+/* KPI row: reset card takes the full row where the countdown pill lives */
+.metric-card {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 0;
+  padding: var(--space-4);
+}
+
+.metric-card.reset {
+  flex-basis: 100%;
+}
+
+.metric-card.reset .metric-value {
+  font-size: 24px;
+}
+
+.metric-card .metric-value {
+  font-size: 28px;
+}
+
+.metric-card .metric-label {
+  font-size: var(--text-sm);
+}
+
+.row {
+  gap: var(--space-2);
+}
+
+.about-rows {
+  gap: var(--space-3);
+}
+
+.about-row {
+  font-size: var(--text-base);
+}
+
+.footer {
+  padding: var(--space-6) var(--container-pad-x) calc(92px + var(--space-5));
+}
+
+.footer-inner {
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+
+.footer-brand p {
+  max-width: none;
+}
+}
+
+/* Very small screens — keep the layout airy but never overflowing */
+@media (max-width: 380px) {
   .hero-title {
-    font-size: 40px;
+    font-size: 33px;
   }
 
-  .hero-logo {
-    width: 68px;
-    height: 68px;
-    border-radius: 20px;
+  .hero-wrap {
+    padding-inline: var(--space-4);
   }
 
-  .hero-tiles {
-    grid-template-columns: 1fr;
-    max-width: 400px;
+  .countdown {
+    padding: 6px 12px;
+  }
+
+  .countdown-label {
+    font-size: 11px;
+  }
+
+  .countdown-time {
+    font-size: 16px;
   }
 
   .hero-tile {
-    flex-direction: row;
-    align-items: center;
+    padding: 12px;
+    gap: var(--space-3);
   }
 
-  .btn.xl {
-    width: 100%;
+  .hero-tile strong {
+    font-size: var(--text-sm);
+  }
+
+  .hero-tile span {
+    font-size: var(--text-xs);
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .footer-bottom {
+    font-size: 12px;
   }
 }
 
