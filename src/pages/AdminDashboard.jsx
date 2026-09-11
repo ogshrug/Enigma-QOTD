@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { SkeletonCard, SkeletonKpis } from '../components/Skeleton'
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState([])
@@ -101,7 +102,13 @@ export default function AdminDashboard() {
     )
   }
 
-  if (loading) return <p className="muted">Loading…</p>
+  if (loading)
+    return (
+      <div>
+        <SkeletonKpis />
+        <SkeletonCard />
+      </div>
+    )
   if (error) return <p className="error">{error}</p>
 
   return (

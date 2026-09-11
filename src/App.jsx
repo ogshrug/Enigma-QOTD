@@ -1,7 +1,8 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import DevStatus from './components/DevStatus'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import Protected from './components/Protected'
 import AdminOnly from './components/AdminOnly'
 import Login from './pages/Login'
@@ -13,11 +14,13 @@ import AdminDashboard from './pages/AdminDashboard'
 import NewQuestion from './pages/NewQuestion'
 import GradeAnswers from './pages/GradeAnswers'
 
-export default function App() {
+function Shell() {
+  const location = useLocation()
+  const isLanding = location.pathname === '/login' || location.pathname === '/role'
   return (
-    <AuthProvider>
+    <>
       <Navbar />
-      <main className="container">
+      <main className={`container${isLanding ? ' container--wide' : ''}`}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/role" element={<RoleSelect />} />
@@ -33,7 +36,16 @@ export default function App() {
           </Route>
         </Routes>
       </main>
+      <Footer />
       <DevStatus />
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Shell />
     </AuthProvider>
   )
 }

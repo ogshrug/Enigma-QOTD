@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import { SkeletonCard } from '../components/Skeleton'
 
 export default function GradeAnswers() {
   const { user } = useAuth()
@@ -123,7 +124,13 @@ export default function GradeAnswers() {
     )
   }
 
-  if (loading) return <p className="muted">Loading answers…</p>
+  if (loading)
+    return (
+      <div>
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    )
 
   return (
     <div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import { SkeletonCard } from '../components/Skeleton'
 
 export default function History() {
   const { user, profile } = useAuth()
@@ -35,8 +36,7 @@ export default function History() {
     }
   }, [user.id])
 
-  if (loading) return <p className="muted">Loading your history…</p>
-
+  if (loading) return <SkeletonCard />
   if (error) return <p className="error">{error}</p>
 
   if (rows.length === 0) {

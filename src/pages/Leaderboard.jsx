@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import { SkeletonCard } from '../components/Skeleton'
 
 const MEDALS = [
   { label: '1', cls: 'rank gold' },
@@ -39,7 +40,13 @@ export default function Leaderboard() {
     }
   }, [])
 
-  if (loading) return <p className="muted">Loading leaderboard…</p>
+  if (loading)
+    return (
+      <div>
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    )
   if (error) return <p className="error">{error}</p>
 
   return (

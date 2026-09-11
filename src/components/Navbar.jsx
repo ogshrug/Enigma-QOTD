@@ -56,6 +56,15 @@ const Icons = {
   ),
 }
 
+function Brand() {
+  return (
+    <Link to="/" className="brand" aria-label="Enigma Daily Quiz — home">
+      <img src="/apple-touch-icon.png" alt="" className="brand-logo" />
+      <span>Enigma</span>
+    </Link>
+  )
+}
+
 export default function Navbar() {
   const { user, profile } = useAuth()
   const navigate = useNavigate()
@@ -65,7 +74,18 @@ export default function Navbar() {
     navigate('/login')
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <header className="navbar top">
+        <Brand />
+        <nav className="desktop-nav" aria-label="Account">
+          <Link className="btn sm" to="/login">
+            Log in
+          </Link>
+        </nav>
+      </header>
+    )
+  }
 
   const isAdmin = profile?.role === 'admin'
   const tabs = isAdmin
@@ -80,29 +100,51 @@ export default function Navbar() {
         { to: '/history', label: 'History', icon: Icons.history },
       ]
 
+  const initial = (profile?.name || profile?.email || '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+
   return (
     <>
       <header className="navbar top">
-        <Link to="/" className="brand">Daily Quiz</Link>
-        <nav className="desktop-nav">
+        <Brand />
+        <nav className="desktop-nav" aria-label="Primary">
           {tabs.map((t) => (
             <NavLink key={t.to} to={t.to} end={t.end}>
               {t.label}
             </NavLink>
           ))}
-          <button className="btn ghost sm" onClick={handleLogout}>Log out</button>
+          <div className="nav-user">
+            {profile?.avatar_url ? (
+              <img className="nav-avatar" src={profile.avatar_url} alt={profile.name || 'Your avatar'} />
+            ) : (
+              <span className="nav-avatar fallback" aria-hidden="true">
+                {initial || '?'}
+              </span>
+            )}
+            <button className="btn ghost sm" onClick={handleLogout} title="Log out">
+              Log out
+            </button>
+          </div>
         </nav>
       </header>
 
-      <nav className="tabbar">
+      <nav className="tabbar" aria-label="Primary">
         {tabs.map((t) => (
           <NavLink key={t.to} to={t.to} end={t.end} className="tab">
-            <span className="tab-icon">{t.icon}</span>
+            <span className="tab-icon" aria-hidden="true">
+              {t.icon}
+            </span>
             <span>{t.label}</span>
           </NavLink>
         ))}
         <button className="tab" onClick={handleLogout} title="Log out">
-          <span className="tab-icon">{Icons.logout}</span>
+          <span className="tab-icon" aria-hidden="true">
+            {Icons.logout}
+          </span>
           <span>Log out</span>
         </button>
       </nav>
