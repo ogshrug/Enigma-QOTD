@@ -5,3 +5,5 @@ dist/
 dev.err
 dev.out
 .idea/
+pentest_findings.db
+reports/
