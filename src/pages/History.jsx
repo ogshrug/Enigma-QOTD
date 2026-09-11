@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
+import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
 
 export default function History() {
   const { user, profile } = useAuth()
@@ -18,7 +19,7 @@ export default function History() {
     async function load() {
       const { data, error } = await supabase
         .from('answers')
-        .select('*, questions(text, question_date)')
+        .select('*, questions(text, question_date, answer_parts)')
         .eq('profile_id', user.id)
         .order('created_at', { ascending: false })
       if (cancelled) return
@@ -69,7 +70,18 @@ export default function History() {
               {pill(a)}
             </div>
             <p>{a.questions?.text ?? 'Unknown question'}</p>
-            <p className="muted">You: {a.answer_text}</p>
+            {isMultiple(a.questions) ? (
+              <div className="segments" style={{ margin: '6px 0' }}>
+                {splitAnswerText(a.answer_text).map((seg, i) => (
+                  <div className="segment-row" key={i}>
+                    <span className="seg-label">{partLabel(i)}</span>
+                    <span>{seg || '—'}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="muted">You: {a.answer_text}</p>
+            )}
           </li>
         ))}
       </ul>

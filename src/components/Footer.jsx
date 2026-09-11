@@ -2,11 +2,10 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 
-// TODO: Fill in the club's real contact email and social links.
-const CLUB_EMAIL = 'enigma@example.com'
+// TODO: add a club email if you want one shown for contact.
 const SOCIALS = [
-  { label: 'Instagram', href: '#' },
-  { label: 'WhatsApp group', href: '#' },
+  { label: 'Instagram', href: 'https://www.instagram.com/enigmadpsn/' },
+  { label: 'WhatsApp group', href: 'https://chat.whatsapp.com/FA4vx70zpKG1Za9y4CnTRA' },
 ]
 
 function GoogleSignIn() {
@@ -77,9 +76,8 @@ export default function Footer() {
 
         <div className="footer-col">
           <h4>Contact</h4>
-          <a href={`mailto:${CLUB_EMAIL}`}>{CLUB_EMAIL}</a>
           {SOCIALS.map((s) => (
-            <a key={s.label} href={s.href}>
+            <a key={s.label} href={s.href} target="_blank" rel="noreferrer">
               {s.label}
             </a>
           ))}

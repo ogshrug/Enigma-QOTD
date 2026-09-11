@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
+import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
 
 export default function GradeAnswers() {
   const { user } = useAuth()
@@ -75,7 +76,18 @@ export default function GradeAnswers() {
         <p>
           <strong>{a.questions?.text ?? 'Unknown question'}</strong>
         </p>
-        <p className="muted">{a.answer_text}</p>
+        {isMultiple(a.questions) ? (
+          <div className="segments" style={{ margin: '6px 0' }}>
+            {splitAnswerText(a.answer_text).map((seg, i) => (
+              <div className="segment-row" key={i}>
+                <span className="seg-label">{partLabel(i)}</span>
+                <span>{seg || '—'}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">{a.answer_text}</p>
+        )}
         {Array.isArray(a.questions?.answer_parts) && a.questions.answer_parts.length > 0 && (
           <p className="muted">
             Parts: {a.questions.answer_parts.map((p) => `"${p.text}" (${p.points})`).join(', ')}

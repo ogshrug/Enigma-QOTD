@@ -84,6 +84,7 @@ export default function Leaderboard() {
                     {isMe && <span className="pill info" style={{ marginLeft: 8 }}>you</span>}
                   </strong>
                   <span className="muted">
+                    {r.class_section ? `${r.class_section} · ` : ''}
                     {r.days_answered} day{r.days_answered === 1 ? '' : 's'}
                   </span>
                 </div>

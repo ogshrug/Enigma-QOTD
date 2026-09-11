@@ -1483,6 +1483,71 @@ ul.plain li {
 }
 
 /* ============================================================
+   Multi-answer boxes (A, B, C…) + answer segments
+   ============================================================ */
+.multi-answers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.multi-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.multi-label {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 2px;
+  border-radius: var(--radius);
+  background: var(--brand-softer);
+  border: 1px solid rgba(18, 117, 226, 0.3);
+  color: var(--brand-hover);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.multi-row textarea {
+  min-height: 56px;
+}
+
+.segments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.segment-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  color: var(--on-surface);
+}
+
+.segment-row .seg-label {
+  flex-shrink: 0;
+  min-width: 18px;
+  color: var(--brand-hover);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .multi-label {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ============================================================
    Links & focus
    ============================================================ */
 a {

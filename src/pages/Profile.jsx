@@ -59,6 +59,55 @@ export default function Profile() {
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('')
 
+  if (profile.role === 'admin') {
+    return (
+      <div>
+        <div className="card" style={{ textAlign: 'center' }}>
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={`${profile.name || 'Your'} avatar`}
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '999px',
+                objectFit: 'cover',
+                marginBottom: 8,
+              }}
+            />
+          ) : (
+            <span
+              className="nav-avatar fallback"
+              style={{ width: 72, height: 72, fontSize: 24, marginBottom: 8 }}
+              aria-hidden="true"
+            >
+              {initial || '?'}
+            </span>
+          )}
+          <h2 style={{ margin: '8px 0 2px' }}>{profile.name || 'Admin'}</h2>
+          <p className="muted" style={{ margin: 0 }}>
+            {user?.email}
+          </p>
+          <p style={{ margin: '6px 0 0' }}>
+            <span className="pill gold">Admin</span>
+          </p>
+        </div>
+
+        <div className="card" style={{ borderColor: 'rgba(241, 106, 106, 0.35)' }}>
+          <div className="row between">
+            <h3 style={{ margin: 0, color: 'var(--destructive)' }}>Account</h3>
+            <button className="btn bad sm" onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
+          <p className="muted" style={{ marginBottom: 0, fontSize: 13 }}>
+            Signing out returns you to the landing page.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="card" style={{ textAlign: 'center' }}>

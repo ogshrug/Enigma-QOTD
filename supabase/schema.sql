@@ -102,6 +102,10 @@ declare
   matched_parts int := 0;
   full_points int := 0;
   base int;
+  segments text[];
+  seg text;
+  norm_seg text;
+  i int;
 begin
   select id, keywords, answer_phrase, answer_parts, points into q
   from public.questions
@@ -118,13 +122,20 @@ begin
 
   if q.answer_parts is not null and jsonb_typeof(q.answer_parts) = 'array'
      and jsonb_array_length(q.answer_parts) > 0 then
-    for p in select jsonb_array_elements(q.answer_parts) loop
+    -- Multi-box answers store each box's text separated by the MULTI_DELIM
+    -- constant (must match src/lib/answerParts.js). Box A matches part 1,
+    -- box B matches part 2, etc. — each box is graded individually.
+    segments := string_to_array(new.answer_text, E'\n\n@@AXIS@@\n\n');
+    total_parts := jsonb_array_length(q.answer_parts);
+    for i in 1..total_parts loop
+      p := q.answer_parts->(i - 1);
       part_text := p->>'text';
-      total_parts := total_parts + 1;
       full_points := full_points + coalesce(nullif(p->>'points', '')::int, 0);
-      if part_text is not null then
+      seg := segments[i];
+      if part_text is not null and seg is not null then
         norm_k := lower(regexp_replace(part_text, E'[^a-zA-Z0-9\\s]', '', 'g'));
-        if norm_k <> '' and position(norm_k in norm) > 0 then
+        norm_seg := lower(regexp_replace(seg, E'[^a-zA-Z0-9\\s]', '', 'g'));
+        if norm_k <> '' and position(norm_k in norm_seg) > 0 then
           matched_parts := matched_parts + 1;
         end if;
       end if;
@@ -178,6 +189,7 @@ returns table (
   profile_id uuid,
   player_name text,
   avatar_url text,
+  class_section text,
   total_points bigint,
   days_answered bigint
 )
@@ -190,13 +202,14 @@ as $$
     a.profile_id,
     coalesce(nullif(p.name, ''), p.email, 'Anonymous'),
     coalesce(p.avatar_url, ''),
+    coalesce(p.class_section, ''),
     sum(coalesce(a.points_earned, 0))::bigint,
     count(*)::bigint
   from public.answers a
   join public.profiles p on p.id = a.profile_id
   where a.status = 'graded'
     and p.role = 'player'
-  group by a.profile_id, p.name, p.email, p.avatar_url
+  group by a.profile_id, p.name, p.email, p.avatar_url, p.class_section
   order by sum(coalesce(a.points_earned, 0)) desc, count(*) asc
   limit 100;
 $$;

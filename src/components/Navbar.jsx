@@ -74,7 +74,7 @@ function Brand() {
   )
 }
 
-function AvatarMenu({ profile, user, onLogout }) {
+function AvatarMenu({ profile, user, isAdmin, onLogout }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const initial = initialsOf(profile?.name || profile?.email)
@@ -119,9 +119,11 @@ function AvatarMenu({ profile, user, onLogout }) {
             <strong>{profile?.name || 'Player'}</strong>
             <span>{user?.email}</span>
           </div>
-          <Link className="avatar-item" to="/profile" onClick={() => setOpen(false)}>
-            Edit profile
-          </Link>
+          {!isAdmin && (
+            <Link className="avatar-item" to="/profile" onClick={() => setOpen(false)}>
+              Edit profile
+            </Link>
+          )}
           <button
             type="button"
             className="avatar-item danger"
@@ -180,7 +182,12 @@ export default function Navbar() {
               {t.label}
             </NavLink>
           ))}
-          <AvatarMenu profile={profile} user={user} onLogout={handleLogout} />
+          <AvatarMenu
+            profile={profile}
+            user={user}
+            isAdmin={isAdmin}
+            onLogout={handleLogout}
+          />
         </nav>
       </header>
 

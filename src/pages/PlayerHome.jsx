@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import Countdown from '../components/Countdown'
 import { SkeletonCard, SkeletonKpis } from '../components/Skeleton'
+import { MULTI_DELIM, isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
 
 export function todayStr() {
   const d = new Date()
@@ -127,9 +128,9 @@ export default function PlayerHome() {
   }, [questions])
 
   function qTotal(q) {
-    if (Array.isArray(q.answer_parts) && q.answer_parts.length > 0)
+    if (isMultiple(q))
       return q.answer_parts.reduce((s, p) => s + (Number(p.points) || 0), 0)
-    return q.points ?? 1
+    return q.answer_parts?.[0]?.points ?? q.points ?? 1
   }
 
   function hintCount(qid) {
@@ -144,13 +145,30 @@ export default function PlayerHome() {
     setShownHints((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  function setDraft(qid, text) {
-    setDrafts((prev) => ({ ...prev, [qid]: text }))
+  function setDraft(qid, i, text) {
+    setDrafts((prev) => {
+      const arr = Array.isArray(prev[qid]) ? [...prev[qid]] : []
+      arr[i] = text
+      return { ...prev, [qid]: arr }
+    })
+  }
+
+  function draftText(qid, i) {
+    const d = drafts[qid]
+    return (Array.isArray(d) ? d[i] : '') ?? ''
+  }
+
+  function isDraftFilled(q) {
+    if (isMultiple(q))
+      return q.answer_parts.some((_, i) => draftText(q.id, i).trim() !== '')
+    return draftText(q.id, 0).trim() !== ''
   }
 
   async function handleSubmit(e, q) {
     e.preventDefault()
-    const text = (drafts[q.id] ?? '').trim()
+    const text = isMultiple(q)
+      ? q.answer_parts.map((_, i) => draftText(q.id, i).trim()).join(MULTI_DELIM).trim()
+      : draftText(q.id, 0).trim()
     if (!text) return
     setSubmitting(q.id)
     setError('')
@@ -175,7 +193,10 @@ export default function PlayerHome() {
         ? prev.map((a) => (a.question_id === q.id ? data : a))
         : [data, ...prev]
     )
-    setDrafts((prev) => ({ ...prev, [q.id]: '' }))
+    setDrafts((prev) => ({
+      ...prev,
+      [q.id]: isMultiple(q) ? q.answer_parts.map(() => '') : [''],
+    }))
     setSubmitting(null)
   }
 
@@ -339,7 +360,18 @@ export default function PlayerHome() {
                     <strong>Your answer</strong>
                     {scorePill(a)}
                   </div>
-                  <p>{a.answer_text}</p>
+                  {isMultiple(q) ? (
+                    <div className="segments">
+                      {splitAnswerText(a.answer_text).map((seg, i) => (
+                        <div className="segment-row" key={i}>
+                          <span className="seg-label">{partLabel(i)}</span>
+                          <span>{seg || '—'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>{a.answer_text}</p>
+                  )}
                   {a.status === 'graded' && <Breakdown a={a} />}
                   {a.score === 1 && q.explanation && (
                     <p className="muted">💡 {q.explanation}</p>
@@ -347,16 +379,33 @@ export default function PlayerHome() {
                 </>
               ) : (
                 <form onSubmit={(e) => handleSubmit(e, q)}>
-                  <textarea
-                    placeholder="Type your answer…"
-                    value={drafts[q.id] ?? ''}
-                    onChange={(e) => setDraft(q.id, e.target.value)}
-                  />
+                  {isMultiple(q) ? (
+                    <div className="multi-answers">
+                      {q.answer_parts.map((part, i) => (
+                        <div className="multi-row" key={i}>
+                          <span className="multi-label" title={`Answer ${partLabel(i)}`}>
+                            {partLabel(i)}
+                          </span>
+                          <textarea
+                            placeholder={`Answer ${partLabel(i)}`}
+                            value={draftText(q.id, i)}
+                            onChange={(e) => setDraft(q.id, i, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <textarea
+                      placeholder="Type your answer…"
+                      value={draftText(q.id, 0)}
+                      onChange={(e) => setDraft(q.id, 0, e.target.value)}
+                    />
+                  )}
                   <div className="row" style={{ marginTop: 10 }}>
                     <button
                       className="btn"
                       type="submit"
-                      disabled={submitting === q.id || !(drafts[q.id] ?? '').trim()}
+                      disabled={submitting === q.id || !isDraftFilled(q)}
                     >
                       {submitting === q.id ? 'Submitting…' : 'Submit answer'}
                     </button>
