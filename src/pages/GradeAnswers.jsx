@@ -39,7 +39,9 @@ export default function GradeAnswers() {
   async function grade(id, correct, answerRow) {
     setBusyId(id)
     setError('')
-    const points = correct ? questionTotal(answerRow.questions) : 0
+    const base = correct ? questionTotal(answerRow.questions) : 0
+    const hints = answerRow.hints_used ?? 0
+    const points = base - 2 * hints
     const { error } = await supabase
       .from('answers')
       .update({
@@ -66,6 +68,7 @@ export default function GradeAnswers() {
   function answerRow(a) {
     const total = questionTotal(a.questions)
     const earned = a.points_earned ?? 0
+    const hints = a.hints_used ?? 0
     return (
       <li key={a.id} style={{ borderBottom: '3px solid var(--border)', padding: '14px 2px' }}>
         <p>
@@ -83,31 +86,36 @@ export default function GradeAnswers() {
               ? 'Auto-graded full marks'
               : a.status === 'graded'
               ? 'Manually graded'
-              : a.auto_matched
-              ? 'Uncertain — review manually (only some parts matched)'
               : 'No match — review'}
           </span>
           <div className="row">
+            {hints > 0 && (
+              <span className="pill warn" title="Revealed before submitting">
+                {hints} hint{hints > 1 ? 's' : ''}
+              </span>
+            )}
             {a.status === 'pending' ? (
               <span className="pill warn">Under review</span>
             ) : earned > 0 ? (
               <span className="pill good">+{earned}/{total} pts</span>
+            ) : earned < 0 ? (
+              <span className="pill bad">{earned}/{total} pts</span>
             ) : (
-              <span className="pill bad">0/{total} pts</span>
+              <span className="pill neutral">0/{total} pts</span>
             )}
             <button
-              className="btn good"
+              className="btn good sm"
               disabled={busyId === a.id}
               onClick={() => grade(a.id, true, a)}
             >
-              Full ({total})
+              {hints > 0 ? `Correct (+${Math.max(0, total - 2 * hints)})` : `Full (+${total})`}
             </button>
             <button
-              className="btn bad"
+              className="btn bad sm"
               disabled={busyId === a.id}
               onClick={() => grade(a.id, false, a)}
             >
-              0
+              Wrong{hints > 0 ? ` (−${2 * hints})` : ''}
             </button>
           </div>
         </div>

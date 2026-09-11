@@ -92,6 +92,7 @@ export default function PlayerHome() {
         question_id: question.id,
         profile_id: user.id,
         answer_text: answer.trim(),
+        hints_used: hintsUsed,
       })
       .select()
       .maybeSingle()
@@ -120,11 +121,10 @@ export default function PlayerHome() {
   function scorePill(s) {
     if (!s) return null
     if (s.status === 'pending') return <span className="pill warn">Under review</span>
-    return s.score === 1 ? (
-      <span className="pill good">+{s.points_earned ?? 1} pt{s.points_earned === 1 ? '' : 's'}</span>
-    ) : (
-      <span className="pill bad">0 pts</span>
-    )
+    const pts = s.points_earned ?? 0
+    if (pts > 0) return <span className="pill good">+{pts} pt{pts === 1 ? '' : 's'}</span>
+    if (pts === 0) return <span className="pill neutral">0 pts</span>
+    return <span className="pill bad">{pts} pts</span>
   }
 
   function toggleHint(i) {
@@ -135,6 +135,8 @@ export default function PlayerHome() {
     Array.isArray(question.answer_parts) && question.answer_parts.length > 0
       ? question.answer_parts.reduce((s, p) => s + (Number(p.points) || 0), 0)
       : question.points
+
+  const hintsUsed = Object.values(shownHints).filter(Boolean).length
 
   return (
     <div>
@@ -164,14 +166,17 @@ export default function PlayerHome() {
 
         {Array.isArray(question.hints) && question.hints.length > 0 && (
           <div className="hints">
-            <p className="muted" style={{ marginBottom: 6 }}>Need a nudge?</p>
+            <div className="row between" style={{ marginBottom: 6 }}>
+              <p className="muted" style={{ margin: 0 }}>Need a nudge?</p>
+              <span className="pill warn" style={{ fontSize: 10 }}>−2 pts per hint</span>
+            </div>
             <div className="row">
               {question.hints.map((h, i) =>
                 shownHints[i] ? (
-                  <span key={i} className="hint-text">💡 {h}</span>
+                  <span key={i} className="hint-text">{h}</span>
                 ) : (
-                  <button key={i} type="button" className="btn ghost" onClick={() => toggleHint(i)}>
-                    💡 Hint {i + 1}
+                  <button key={i} type="button" className="btn ghost sm" onClick={() => toggleHint(i)}>
+                    Hint {i + 1}
                   </button>
                 )
               )}
@@ -187,6 +192,24 @@ export default function PlayerHome() {
             {scorePill(submission)}
           </div>
           <p>{submission.answer_text}</p>
+          {submission.status === 'graded' && (
+            <div className="points-breakdown">
+              <span className="row-line">
+                <span className="muted">Base</span>
+                <span>+{(submission.points_earned ?? 0) + (submission.hints_used ?? 0) * 2}</span>
+              </span>
+              {submission.hints_used > 0 && (
+                <span className="row-line">
+                  <span className="muted">{submission.hints_used} hint{submission.hints_used > 1 ? 's' : ''} (−2 each)</span>
+                  <span className="bad-num">−{submission.hints_used * 2}</span>
+                </span>
+              )}
+              <span className="row-line strong-line">
+                <span>Net</span>
+                <span>{(submission.points_earned ?? 0) > 0 ? `+${submission.points_earned}` : submission.points_earned ?? 0}</span>
+              </span>
+            </div>
+          )}
           {submission.score === 1 && question.explanation && (
             <p className="muted">💡 {question.explanation}</p>
           )}

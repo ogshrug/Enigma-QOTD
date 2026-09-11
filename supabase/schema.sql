@@ -39,6 +39,7 @@ create table if not exists public.answers (
   status text not null default 'pending' check (status in ('pending', 'graded')),
   auto_matched boolean not null default false,
   points_earned int,
+  hints_used int not null default 0,
   graded_by uuid references public.profiles(id),
   graded_at timestamptz,
   created_at timestamptz not null default now(),
@@ -54,6 +55,7 @@ alter table public.questions add column if not exists media_type text not null d
 alter table public.questions add column if not exists media_url text not null default '';
 alter table public.questions add column if not exists hints text[] not null default '{}';
 alter table public.answers add column if not exists points_earned int;
+alter table public.answers add column if not exists hints_used int not null default 0;
 
 -- ---------------------------------------------------------------------------
 -- Functions
@@ -76,6 +78,10 @@ $$;
 -- (case/punctuation-insensitive substring match). If even one part is missing —
 -- or nothing matches — the answer is flagged "pending" (Uncertain) for manual
 -- review in the Grade screen. No partial points are auto-awarded.
+--
+-- Hint penalty: every hint a player revealed before submitting costs 2 points.
+-- points_earned = (full ? question-worth : 0) - 2 * hints_used. A wrong answer
+-- with hints therefore goes negative; a wrong answer without hints stays 0.
 create or replace function public.auto_grade()
 returns trigger
 language plpgsql
@@ -92,6 +98,7 @@ declare
   total_parts int := 0;
   matched_parts int := 0;
   full_points int := 0;
+  base int;
 begin
   select id, keywords, answer_phrase, answer_parts, points into q
   from public.questions
@@ -100,7 +107,11 @@ begin
     raise exception 'question not found';
   end if;
 
+  new.hints_used := coalesce(new.hints_used, 0);
   norm := lower(regexp_replace(new.answer_text, E'[^a-zA-Z0-9\\s]', '', 'g'));
+
+  -- Returns points for a correct answer, minus 2 per hint used.
+  base := 0;
 
   if q.answer_parts is not null and jsonb_typeof(q.answer_parts) = 'array'
      and jsonb_array_length(q.answer_parts) > 0 then
@@ -117,46 +128,34 @@ begin
     end loop;
 
     if total_parts > 0 and matched_parts = total_parts then
-      new.score := 1;
-      new.points_earned := full_points;
-      new.status := 'graded';
-      new.auto_matched := true;
-    else
-      new.score := null;
-      new.points_earned := null;
-      new.status := 'pending';
-      new.auto_matched := false;
+      base := full_points - 2 * new.hints_used;
     end if;
-    return new;
-  end if;
-
-  -- Legacy questions: single answer phrase / keywords.
-  if q.answer_phrase is not null and btrim(q.answer_phrase) <> '' then
+  elsif q.answer_phrase is not null and btrim(q.answer_phrase) <> '' then
     norm_k := lower(regexp_replace(q.answer_phrase, E'[^a-zA-Z0-9\\s]', '', 'g'));
     if norm_k <> '' and position(norm_k in norm) > 0 then
-      new.score := 1;
-      new.points_earned := coalesce(q.points, 1);
-      new.status := 'graded';
-      new.auto_matched := true;
-      return new;
+      base := coalesce(q.points, 1) - 2 * new.hints_used;
     end if;
   elsif q.keywords is not null and cardinality(q.keywords) > 0 then
     foreach k in array q.keywords loop
       norm_k := lower(regexp_replace(k, E'[^a-zA-Z0-9\\s]', '', 'g'));
       if norm_k <> '' and position(norm_k in norm) > 0 then
-        new.score := 1;
-        new.points_earned := coalesce(q.points, 1);
-        new.status := 'graded';
-        new.auto_matched := true;
-        return new;
+        base := coalesce(q.points, 1) - 2 * new.hints_used;
+        exit;
       end if;
     end loop;
   end if;
 
-  new.score := null;
-  new.points_earned := null;
-  new.status := 'pending';
-  new.auto_matched := false;
+  if base > 0 then
+    new.score := 1;
+    new.points_earned := base;
+    new.status := 'graded';
+    new.auto_matched := true;
+  else
+    new.score := null;
+    new.points_earned := null;
+    new.status := 'pending';
+    new.auto_matched := false;
+  end if;
   return new;
 end;
 $$;
@@ -165,6 +164,40 @@ drop trigger if exists answers_auto_grade on public.answers;
 create trigger answers_auto_grade
   before insert on public.answers
   for each row execute function public.auto_grade();
+
+-- Leaderboard: safe-to-call aggregate for every player. SECURITY DEFINER so a
+-- player can see everyone's totals even though answers RLS only exposes their
+-- own rows. Points are ONLY ever earned through the daily question (the app
+-- has no past-question bank, and unique(question_id, profile_id) prevents
+-- repeats), so this is the full season total.
+create or replace function public.leaderboard()
+returns table (
+  profile_id uuid,
+  player_name text,
+  avatar_url text,
+  total_points bigint,
+  days_answered bigint
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    a.profile_id,
+    coalesce(nullif(p.name, ''), p.email, 'Anonymous'),
+    coalesce(p.avatar_url, ''),
+    sum(coalesce(a.points_earned, 0))::bigint,
+    count(*)::bigint
+  from public.answers a
+  join public.profiles p on p.id = a.profile_id
+  where a.status = 'graded'
+    and p.role = 'player'
+  group by a.profile_id, p.name, p.email, p.avatar_url
+  order by sum(coalesce(a.points_earned, 0)) desc, count(*) asc
+  limit 100;
+$$;
+grant execute on function public.leaderboard() to authenticated, anon;
 
 -- Admin passphrase. Only the SECURITY DEFINER function below can read this
 -- table; players can never see it (no RLS policies -> deny all).

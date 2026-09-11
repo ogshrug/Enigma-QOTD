@@ -50,13 +50,10 @@ export default function History() {
 
   function pill(a) {
     if (a.status === 'pending') return <span className="pill warn">Under review</span>
-    return a.score === 1 ? (
-      <span className="pill good">
-        +{a.points_earned ?? 1} pt{a.points_earned === 1 ? '' : 's'}
-      </span>
-    ) : (
-      <span className="pill bad">0 pts</span>
-    )
+    const pts = a.points_earned ?? 0
+    if (pts > 0) return <span className="pill good">+{pts} pt{pts === 1 ? '' : 's'}</span>
+    if (pts === 0) return <span className="pill neutral">0 pts</span>
+    return <span className="pill bad">{pts} pts</span>
   }
 
   return (
