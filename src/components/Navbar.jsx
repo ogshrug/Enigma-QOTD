@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { supabase } from '../supabase'
@@ -47,13 +48,21 @@ const Icons = {
       <path d="M22 4 12 14l-3-3" />
     </svg>
   ),
-  logout: (
+  user: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
     </svg>
   ),
+}
+
+function initialsOf(name) {
+  return (name || '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
 }
 
 function Brand() {
@@ -62,6 +71,67 @@ function Brand() {
       <img src="/apple-touch-icon.png" alt="" className="brand-logo" />
       <span>Enigma</span>
     </Link>
+  )
+}
+
+function AvatarMenu({ profile, user, onLogout }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const initial = initialsOf(profile?.name || profile?.email)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="avatar-menu" ref={ref}>
+      <button
+        type="button"
+        className="avatar-btn"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Account"
+      >
+        {profile?.avatar_url ? (
+          <img className="nav-avatar" src={profile.avatar_url} alt="" />
+        ) : (
+          <span className="nav-avatar fallback" aria-hidden="true">
+            {initial || '?'}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="avatar-pop" role="menu">
+          <div className="avatar-head">
+            <strong>{profile?.name || 'Player'}</strong>
+            <span>{user?.email}</span>
+          </div>
+          <Link className="avatar-item" to="/profile" onClick={() => setOpen(false)}>
+            Edit profile
+          </Link>
+          <button
+            type="button"
+            className="avatar-item danger"
+            onClick={onLogout}
+          >
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -100,13 +170,6 @@ export default function Navbar() {
         { to: '/history', label: 'History', icon: Icons.history },
       ]
 
-  const initial = (profile?.name || profile?.email || '')
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
-
   return (
     <>
       <header className="navbar top">
@@ -117,18 +180,7 @@ export default function Navbar() {
               {t.label}
             </NavLink>
           ))}
-          <div className="nav-user">
-            {profile?.avatar_url ? (
-              <img className="nav-avatar" src={profile.avatar_url} alt={profile.name || 'Your avatar'} />
-            ) : (
-              <span className="nav-avatar fallback" aria-hidden="true">
-                {initial || '?'}
-              </span>
-            )}
-            <button className="btn ghost sm" onClick={handleLogout} title="Log out">
-              Log out
-            </button>
-          </div>
+          <AvatarMenu profile={profile} user={user} onLogout={handleLogout} />
         </nav>
       </header>
 
@@ -141,12 +193,12 @@ export default function Navbar() {
             <span>{t.label}</span>
           </NavLink>
         ))}
-        <button className="tab" onClick={handleLogout} title="Log out">
+        <NavLink to="/profile" className="tab" end>
           <span className="tab-icon" aria-hidden="true">
-            {Icons.logout}
+            {Icons.user}
           </span>
-          <span>Log out</span>
-        </button>
+          <span>Profile</span>
+        </NavLink>
       </nav>
     </>
   )

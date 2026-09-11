@@ -10,6 +10,7 @@ import RoleSelect from './pages/RoleSelect'
 import PlayerHome from './pages/PlayerHome'
 import History from './pages/History'
 import Leaderboard from './pages/Leaderboard'
+import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import NewQuestion from './pages/NewQuestion'
 import GradeAnswers from './pages/GradeAnswers'
@@ -28,6 +29,7 @@ function Shell() {
             <Route path="/" element={<PlayerHome />} />
             <Route path="/history" element={<History />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/profile" element={<Profile />} />
             <Route element={<AdminOnly />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/new" element={<NewQuestion />} />

@@ -58,6 +58,7 @@ alter table public.questions add column if not exists media_url text not null de
 alter table public.questions add column if not exists hints text[] not null default '{}';
 alter table public.answers add column if not exists points_earned int;
 alter table public.answers add column if not exists hints_used int not null default 0;
+alter table public.profiles add column if not exists class_section text not null default '';
 
 -- ---------------------------------------------------------------------------
 -- Functions
@@ -320,6 +321,18 @@ create policy profiles_select on public.profiles
 drop policy if exists profiles_insert on public.profiles;
 create policy profiles_insert on public.profiles
   for insert with check (auth.uid() = id and role = 'player');
+
+-- Players can update their own profile (username, class/section, avatar), but
+-- the WITH CHECK also pins `role` to its current value so nobody can self-
+-- promote to admin via a direct update.
+drop policy if exists profiles_update on public.profiles;
+create policy profiles_update on public.profiles
+  for update using (auth.uid() = id)
+  with check (
+    auth.uid() = id
+    and role in ('admin', 'player')
+    and role = (select role from public.profiles p where p.id = auth.uid())
+  );
 
 drop policy if exists questions_select on public.questions;
 create policy questions_select on public.questions

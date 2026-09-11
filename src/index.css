@@ -210,13 +210,107 @@ body {
   background: var(--brand-soft);
 }
 
-.nav-user {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+/* Avatar menu (desktop) */
+.avatar-menu {
+  position: relative;
   margin-left: var(--space-2);
   padding-left: var(--space-4);
   border-left: 1px solid var(--hairline);
+}
+
+.avatar-btn {
+  background: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  cursor: pointer;
+  line-height: 0;
+  transition: box-shadow var(--dur) var(--ease);
+}
+
+.avatar-btn:hover {
+  box-shadow: 0 0 0 3px var(--brand-softer);
+}
+
+.avatar-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 230px;
+  background: var(--surface-container-high);
+  border: 1px solid var(--surface-bright);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-float);
+  padding: var(--space-2);
+  z-index: 80;
+  animation: pop-in var(--dur) var(--ease);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.avatar-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.avatar-head strong {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.avatar-head span {
+  font-size: var(--text-sm);
+  color: var(--on-surface-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.avatar-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--on-surface);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur) var(--ease);
+}
+
+.avatar-item:hover {
+  background: var(--surface-container);
+  text-decoration: none;
+}
+
+.avatar-item.danger {
+  color: var(--destructive);
+}
+
+.avatar-item.danger:hover {
+  background: var(--destructive-bg);
 }
 
 .nav-avatar {
