@@ -120,6 +120,16 @@ body {
   color: #fff;
 }
 
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell main {
+  flex: 1;
+}
+
 .container {
   max-width: 780px;
   margin: 0 auto;

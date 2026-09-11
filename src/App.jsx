@@ -19,7 +19,7 @@ function Shell() {
   const location = useLocation()
   const isLanding = location.pathname === '/login' || location.pathname === '/role'
   return (
-    <>
+    <div className="app-shell">
       <Navbar />
       <main className={`container${isLanding ? ' container--wide' : ''}`}>
         <Routes>
@@ -40,7 +40,7 @@ function Shell() {
       </main>
       <Footer />
       <DevStatus />
-    </>
+    </div>
   )
 }
 
