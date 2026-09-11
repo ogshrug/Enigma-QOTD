@@ -126,8 +126,9 @@ body {
   flex-direction: column;
 }
 
-.app-shell main {
-  flex: 1;
+.rich-text {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .container {

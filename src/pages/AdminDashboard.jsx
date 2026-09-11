@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { SkeletonCard, SkeletonKpis } from '../components/Skeleton'
+import RichText from '../components/RichText'
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState([])
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
                   <span className="pill neutral">inactive</span>
                 )}
               </div>
-              <p>{q.text}</p>
+              <RichText as="p" text={q.text} />
               <p className="muted">
                 {Array.isArray(q.answer_parts) && q.answer_parts.length > 0
                   ? q.answer_parts.map((p) => `"${p.text}" (${p.points})`).join(' + ')

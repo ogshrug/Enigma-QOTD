@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
 import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
+import RichText from '../components/RichText'
 
 export default function GradeAnswers() {
   const { user } = useAuth()
@@ -154,7 +155,7 @@ export default function GradeAnswers() {
     return (
       <li key={a.id} className="grade-item">
         <p>
-          <strong>{a.questions?.text ?? 'Unknown question'}</strong>
+          <strong><RichText text={a.questions?.text ?? 'Unknown question'} /></strong>
         </p>
 
         {multi ? (

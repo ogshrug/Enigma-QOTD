@@ -193,6 +193,10 @@ export default function NewQuestion() {
           placeholder='e.g. "What does the scientific method emphasize?"'
           required
         />
+        <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>
+          Line breaks are kept. Wrap a word or phrase in <code>**</code> to make
+          it bold — e.g. <code>**scientific method**</code>.
+        </p>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14 }}>
           <input

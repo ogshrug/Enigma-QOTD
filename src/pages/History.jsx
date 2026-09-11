@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
 import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
+import RichText from '../components/RichText'
 
 export default function History() {
   const { user, profile } = useAuth()
@@ -69,7 +70,7 @@ export default function History() {
               </span>
               {pill(a)}
             </div>
-            <p>{a.questions?.text ?? 'Unknown question'}</p>
+            <RichText as="p" text={a.questions?.text ?? 'Unknown question'} />
             {isMultiple(a.questions) ? (
               <div className="segments" style={{ margin: '6px 0' }}>
                 {splitAnswerText(a.answer_text).map((seg, i) => (

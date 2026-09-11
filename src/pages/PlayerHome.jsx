@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import Countdown from '../components/Countdown'
 import { SkeletonCard, SkeletonKpis } from '../components/Skeleton'
 import { MULTI_DELIM, isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
+import RichText from '../components/RichText'
 
 export function todayStr() {
   const d = new Date()
@@ -320,7 +321,7 @@ export default function PlayerHome() {
                   <audio controls src={q.media_url} />
                 </div>
               )}
-              <p>{q.text}</p>
+              <RichText as="p" text={q.text} />
 
               {hintsShown && (
                 <div className="hints">
