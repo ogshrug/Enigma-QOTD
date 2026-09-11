@@ -4,26 +4,28 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 
 const cardStyle = {
-  background: '#1e293b',
-  border: '1px solid #334155',
-  borderRadius: 10,
+  background: 'var(--surface-container)',
+  border: '1px solid var(--surface-bright)',
+  borderRadius: 'var(--radius-card)',
   padding: '16px 20px',
   margin: '10px 0',
   cursor: 'pointer',
   textAlign: 'left',
-  color: '#e2e8f0',
-  fontSize: 16,
+  color: 'var(--on-surface)',
+  fontSize: 15,
+  fontWeight: 600,
+  boxShadow: 'var(--shadow-card)',
   width: '100%',
 }
 
 const inputStyle = {
   width: '100%',
-  background: '#0f172a',
-  color: '#e2e8f0',
-  border: '1px solid #334155',
-  borderRadius: 8,
+  background: 'var(--surface-container-lowest)',
+  color: 'var(--on-surface)',
+  border: '1px solid var(--outline-strong)',
+  borderRadius: 'var(--radius)',
   padding: '10px 12px',
-  fontSize: 15,
+  fontSize: 14,
 }
 
 export default function RoleSelect() {
@@ -92,7 +94,7 @@ export default function RoleSelect() {
             Created successfully — one moment while we take you in.
           </p>
         )}
-        {error && <p style={{ color: '#f87171' }}>{error}</p>}
+        {error && <p style={{ color: 'var(--destructive)' }}>{error}</p>}
       </div>
     )
   }
@@ -101,7 +103,7 @@ export default function RoleSelect() {
     return (
       <div>
         <h1>Admin account</h1>
-        <p style={{ color: '#94a3b8' }}>
+        <p className="muted">
           Enter the admin passphrase provided by the quiz organizer.
         </p>
         <label htmlFor="passphrase" style={{ display: 'block', margin: '12px 0 6px' }}>
@@ -131,9 +133,9 @@ export default function RoleSelect() {
             Back
           </button>
         </div>
-        {error && <p style={{ color: '#f87171' }}>{error}</p>}
+        {error && <p style={{ color: 'var(--destructive)' }}>{error}</p>}
         {import.meta.env.DEV && (
-          <p style={{ color: '#fbbf24', fontSize: 13 }}>
+          <p style={{ color: 'var(--status-warning-text)', fontSize: 13 }}>
             signed in: {user ? user.email : 'NO USER'}
           </p>
         )}
@@ -144,7 +146,7 @@ export default function RoleSelect() {
   return (
     <div>
       <h1>One last thing</h1>
-      <p style={{ color: '#94a3b8' }}>Pick the type of account you want.</p>
+      <p className="muted">Pick the type of account you want.</p>
 
       <button
         style={cardStyle}
@@ -156,7 +158,7 @@ export default function RoleSelect() {
       >
         <strong>Player</strong>
         <br />
-        <span style={{ color: '#94a3b8' }}>
+        <span className="muted">
           Answer the daily question and check your history.
         </span>
       </button>
@@ -171,14 +173,14 @@ export default function RoleSelect() {
       >
         <strong>Admin</strong>
         <br />
-        <span style={{ color: '#94a3b8' }}>
+        <span className="muted">
           Create questions and grade answers. Requires the admin passphrase.
         </span>
       </button>
 
-      {error && <p style={{ color: '#f87171' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--destructive)' }}>{error}</p>}
 
-      <p style={{ color: '#94a3b8', fontSize: 13 }}>
+      <p className="muted" style={{ fontSize: 13 }}>
         Signed in as {user?.email || user?.id}
       </p>
     </div>

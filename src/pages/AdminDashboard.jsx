@@ -45,21 +45,24 @@ export default function AdminDashboard() {
       </div>
 
       <div className="row">
-        <div className="card">
-          <h2>{questions.length}</h2>
-          <p className="muted">Questions</p>
+        <div className="metric-card">
+          <p className="metric-label">Questions</p>
+          <p className="metric-value">{questions.length}</p>
         </div>
-        <div className="card">
-          <h2>{answers.length}</h2>
-          <p className="muted">Answers</p>
+        <div className="metric-card">
+          <p className="metric-label">Answers</p>
+          <p className="metric-value">{answers.length}</p>
         </div>
-        <div className="card">
-          <h2>{pending}</h2>
-          <p className="muted">Pending review</p>
+        <div className="metric-card">
+          <p className="metric-label">
+            Pending review
+            {pending > 0 && <span className="pill warn">{pending}</span>}
+          </p>
+          <p className="metric-value">{pending}</p>
         </div>
-        <div className="card">
-          <h2>{graded}</h2>
-          <p className="muted">Auto-graded</p>
+        <div className="metric-card">
+          <p className="metric-label">Graded</p>
+          <p className="metric-value">{graded}</p>
         </div>
       </div>
 

@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
           <h2>Something went wrong</h2>
           <pre
             className="muted"
-            style={{ whiteSpace: 'pre-wrap', overflowX: 'auto', background: '#0f172a', padding: 12, borderRadius: 8 }}
+            style={{ whiteSpace: 'pre-wrap', overflowX: 'auto', background: 'var(--surface-container-lowest)', padding: 12, borderRadius: 8 }}
           >
             {String(this.state.error?.message || this.state.error)}
           </pre>

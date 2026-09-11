@@ -96,12 +96,12 @@ export default function NewQuestion() {
 
   const inputStyle = {
     width: '100%',
-    background: '#0f172a',
-    color: '#e2e8f0',
-    border: '1px solid #334155',
-    borderRadius: 8,
+    background: 'var(--surface-container-lowest)',
+    color: 'var(--on-surface)',
+    border: '1px solid var(--outline-strong)',
+    borderRadius: 'var(--radius)',
     padding: '10px 12px',
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'inherit',
   }
   const labelStyle = { display: 'block', margin: '12px 0 6px', fontWeight: 600, fontSize: 14 }
