@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { SkeletonCard, SkeletonKpis } from '../components/Skeleton'
 import RichText from '../components/RichText'
+import { todayStr } from './PlayerHome'
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState([])
   const [answers, setAnswers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState('')
 
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [phrase, setPhrase] = useState('')
@@ -36,6 +38,27 @@ export default function AdminDashboard() {
 
   const pending = answers.filter((a) => a.status === 'pending').length
   const graded = answers.filter((a) => a.status === 'graded').length
+
+  async function quickUpdate(id, patch) {
+    setBusyId(id)
+    setError('')
+    const { error } = await supabase.from('questions').update(patch).eq('id', id)
+    if (error) setError(error.message)
+    await load()
+    setBusyId('')
+  }
+
+  function moveToToday(q) {
+    if (q.question_date === todayStr()) {
+      quickUpdate(q.id, { active: true })
+    } else {
+      quickUpdate(q.id, { question_date: todayStr(), active: true })
+    }
+  }
+
+  function toggleActive(q) {
+    quickUpdate(q.id, { active: !q.active })
+  }
 
   async function handleReset(e) {
     e.preventDefault()
@@ -152,11 +175,30 @@ export default function AdminDashboard() {
             <li key={q.id}>
               <div className="row between">
                 <span>{q.question_date}</span>
-                {q.active ? (
-                  <span className="pill good">active</span>
-                ) : (
-                  <span className="pill neutral">inactive</span>
-                )}
+                <div className="row" style={{ margin: 0 }}>
+                  {q.active ? (
+                    <span className="pill good">active</span>
+                  ) : (
+                    <span className="pill neutral">inactive</span>
+                  )}
+                  <button
+                    type="button"
+                    className="btn sm"
+                    disabled={busyId === q.id}
+                    onClick={() => moveToToday(q)}
+                    title="Set date to today and turn it live"
+                  >
+                    {q.question_date === todayStr() ? 'Make live' : 'Make live today'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost sm"
+                    disabled={busyId === q.id}
+                    onClick={() => toggleActive(q)}
+                  >
+                    {q.active ? 'Take down' : 'Bring up'}
+                  </button>
+                </div>
               </div>
               <RichText as="p" text={q.text} />
               <p className="muted">
