@@ -5,28 +5,96 @@ import { uploadToMediaBucket } from '../lib/upload'
 import { todayStr } from './PlayerHome'
 import DatePicker from '../components/DatePicker'
 
+const DRAFT_KEY = 'enigma:new-question:draft'
+
+function loadDraft() {
+  const base = {
+    text: '',
+    position: 0,
+    date: todayStr(),
+    parts: [{ text: '', points: 10 }],
+    explanation: '',
+    active: true,
+    imageOn: false,
+    mediaKind: 'none',
+    hints: [''],
+  }
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY)
+    if (!raw) return base
+    const d = JSON.parse(raw)
+    return {
+      text: typeof d.text === 'string' ? d.text : base.text,
+      position: Number.isFinite(Number(d.position)) ? Number(d.position) : base.position,
+      date: typeof d.date === 'string' ? d.date : base.date,
+      parts: Array.isArray(d.parts)
+        ? d.parts
+            .filter((p) => p && typeof p === 'object')
+            .map((p) => ({
+              text: typeof p.text === 'string' ? p.text : '',
+              points: Math.max(10, Number(p.points) || 10),
+            }))
+        : base.parts,
+      explanation: typeof d.explanation === 'string' ? d.explanation : base.explanation,
+      active: typeof d.active === 'boolean' ? d.active : base.active,
+      imageOn: typeof d.imageOn === 'boolean' ? d.imageOn : base.imageOn,
+      mediaKind: ['none', 'video', 'audio'].includes(d.mediaKind) ? d.mediaKind : base.mediaKind,
+      hints: Array.isArray(d.hints)
+        ? (d.hints.length > 0 ? d.hints.filter((h) => typeof h === 'string') : [''])
+        : base.hints,
+    }
+  } catch {
+    return base
+  }
+}
+
 export default function NewQuestion() {
   const navigate = useNavigate()
 
-  const [text, setText] = useState('')
-  const [position, setPosition] = useState(0)
-  const [date, setDate] = useState(todayStr())
-  const [parts, setParts] = useState([{ text: '', points: 10 }])
-  const [explanation, setExplanation] = useState('')
-  const [active, setActive] = useState(true)
+  const initial = useState(() => loadDraft())[0]
+  const [text, setText] = useState(initial.text)
+  const [position, setPosition] = useState(initial.position)
+  const [date, setDate] = useState(initial.date)
+  const [parts, setParts] = useState(initial.parts)
+  const [explanation, setExplanation] = useState(initial.explanation)
+  const [active, setActive] = useState(initial.active)
 
-  const [imageOn, setImageOn] = useState(false)
+  const [imageOn, setImageOn] = useState(initial.imageOn)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
 
-  const [mediaKind, setMediaKind] = useState('none') // none | video | audio
+  const [mediaKind, setMediaKind] = useState(initial.mediaKind)
   const [mediaFile, setMediaFile] = useState(null)
   const [mediaPreview, setMediaPreview] = useState('')
 
-  const [hints, setHints] = useState([''])
+  const [hints, setHints] = useState(initial.hints)
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        sessionStorage.setItem(
+          DRAFT_KEY,
+          JSON.stringify({
+            text,
+            explanation,
+            hints,
+            parts,
+            date,
+            position,
+            active,
+            mediaKind,
+            imageOn,
+          })
+        )
+      } catch {
+        // storage full or unavailable — ignore
+      }
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [text, explanation, hints, parts, date, position, active, mediaKind, imageOn])
 
   useEffect(() => {
     if (imageFile) {
@@ -90,6 +158,7 @@ export default function NewQuestion() {
         media_url,
       })
       if (error) throw error
+      sessionStorage.removeItem(DRAFT_KEY)
       navigate('/admin')
     } catch (err) {
       setError(err.message)
