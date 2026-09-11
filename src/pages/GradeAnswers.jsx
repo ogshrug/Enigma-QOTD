@@ -122,6 +122,26 @@ export default function GradeAnswers() {
     setBusyId('')
   }
 
+  async function removePoints(id) {
+    if (!window.confirm('Remove the awarded points and send this answer back to review?')) return
+    setBusyId(id)
+    setError('')
+    const { error } = await supabase
+      .from('answers')
+      .update({
+        status: 'pending',
+        auto_matched: false,
+        points_earned: 0,
+        score: 0,
+        graded_by: null,
+        graded_at: null,
+      })
+      .eq('id', id)
+    if (error) setError(error.message)
+    await load()
+    setBusyId('')
+  }
+
   function multipleParts(a) {
     if (!isMultiple(a.questions)) return null
     const qParts = a.questions.answer_parts
@@ -229,20 +249,31 @@ export default function GradeAnswers() {
                   </>
                 )
               })()}
-            {a.status === 'graded' &&
-              (a.points_earned > 0 ? (
-                <span className="pill good">
-                  +{a.points_earned}/{questionTotal(a.questions)} pts
-                </span>
-              ) : a.points_earned < 0 ? (
-                <span className="pill bad">
-                  {a.points_earned}/{questionTotal(a.questions)} pts
-                </span>
-              ) : (
-                <span className="pill neutral">
-                  0/{questionTotal(a.questions)} pts
-                </span>
-              ))}
+            {a.status === 'graded' && (
+              <>
+                <button
+                  type="button"
+                  className="btn ghost sm"
+                  disabled={busyId === a.id}
+                  onClick={() => removePoints(a.id)}
+                >
+                  Remove points
+                </button>
+                {a.points_earned > 0 ? (
+                  <span className="pill good">
+                    +{a.points_earned}/{questionTotal(a.questions)} pts
+                  </span>
+                ) : a.points_earned < 0 ? (
+                  <span className="pill bad">
+                    {a.points_earned}/{questionTotal(a.questions)} pts
+                  </span>
+                ) : (
+                  <span className="pill neutral">
+                    0/{questionTotal(a.questions)} pts
+                  </span>
+                )}
+              </>
+            )}
           </div>
         </div>
       </li>
