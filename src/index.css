@@ -1547,6 +1547,55 @@ ul.plain li {
   }
 }
 
+/* Per-part grade cards (Grade tab) */
+.part-grade-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.part-grade-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-container-low);
+  border: 1px solid var(--surface-bright);
+}
+
+.part-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.part-letter {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--brand-hover);
+}
+
+.part-worth {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--status-active);
+}
+
+.part-grade-card .row {
+  flex-wrap: nowrap;
+}
+
+.grade-summary {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
 /* ============================================================
    Links & focus
    ============================================================ */
