@@ -146,14 +146,22 @@ export default function Navbar() {
     navigate('/login')
   }
 
+  async function handleLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    if (error) navigate('/login')
+  }
+
   if (!user) {
     return (
       <header className="navbar top">
         <Brand />
         <nav className="desktop-nav" aria-label="Account">
-          <Link className="btn sm" to="/login">
+          <button type="button" className="btn sm" onClick={handleLogin}>
             Log in
-          </Link>
+          </button>
         </nav>
       </header>
     )
