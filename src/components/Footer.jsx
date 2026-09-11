@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 const SOCIALS = [
   { label: 'Instagram', href: 'https://www.instagram.com/enigmadpsn/' },
   { label: 'WhatsApp group', href: 'https://chat.whatsapp.com/FA4vx70zpKG1Za9y4CnTRA' },
-  { label: 'Email', href: 'mailto:enigmaquizclub@gmail.com', newTab: false },
+  { label: 'enigmaquizclub@gmail.com', href: 'mailto:enigmaquizclub@gmail.com', newTab: false },
 ]
 
 function GoogleSignIn() {
