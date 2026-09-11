@@ -17,6 +17,7 @@ create table if not exists public.questions (
   id uuid primary key default gen_random_uuid(),
   text text not null,
   question_date date not null default current_date,
+  position int not null default 0,
   keywords text[] not null default '{}',
   answer_phrase text not null default '',
   answer_parts jsonb not null default '[]',
@@ -47,6 +48,7 @@ create table if not exists public.answers (
 );
 
 -- Add the new columns if upgrading an existing database.
+alter table public.questions add column if not exists position int not null default 0;
 alter table public.questions add column if not exists answer_phrase text not null default '';
 alter table public.questions add column if not exists answer_parts jsonb not null default '[]';
 alter table public.questions add column if not exists points int not null default 1 check (points > 0);
@@ -307,4 +309,4 @@ create policy answers_update on public.answers
 
 create index if not exists idx_answers_profile on public.answers(profile_id);
 create index if not exists idx_answers_question on public.answers(question_id);
-create index if not exists idx_questions_date on public.questions(question_date);
+create index if not exists idx_questions_date on public.questions(question_date, position asc);

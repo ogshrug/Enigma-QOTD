@@ -12,65 +12,58 @@ export function todayStr() {
 
 export default function PlayerHome() {
   const { user, profile } = useAuth()
-  const [question, setQuestion] = useState(null)
-  const [answer, setAnswer] = useState('')
-  const [submission, setSubmission] = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [answers, setAnswers] = useState({})
+  const [drafts, setDrafts] = useState({})
   const [shownHints, setShownHints] = useState({})
+  const [submitting, setSubmitting] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const refreshTimer = useRef(null)
-
   const today = todayStr()
 
   if (profile?.role === 'admin') return <Navigate to="/admin" replace />
 
-  const loadMyAnswer = async (questionId) => {
-    const { data, error } = await supabase
+  const loadAnswers = async (qids) => {
+    if (!qids.length) return
+    const { data } = await supabase
       .from('answers')
       .select('*')
-      .eq('question_id', questionId)
       .eq('profile_id', user.id)
-      .maybeSingle()
-    if (!error) setSubmission(data)
+      .in('question_id', qids)
+    if (data) {
+      setAnswers((prev) => {
+        const next = { ...prev }
+        for (const a of data) next[a.question_id] = a
+        return next
+      })
+    }
   }
 
   useEffect(() => {
     let cancelled = false
-
     async function load() {
       setLoading(true)
-
-      const qRes = await supabase
+      const { data } = await supabase
         .from('questions')
         .select('*')
         .eq('question_date', today)
-        .limit(1)
-
+        .eq('active', true)
+        .order('position', { ascending: true })
       if (cancelled) return
-      const qdoc = qRes.data?.[0]
-      if (!qdoc || qRes.error) {
-        setQuestion(null)
-        setLoading(false)
-        return
-      }
-
-      setQuestion(qdoc)
-      await loadMyAnswer(qdoc.id)
+      const qs = data ?? []
+      setQuestions(qs)
+      await loadAnswers(qs.map((q) => q.id))
       setLoading(false)
     }
-
     load()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [today, user.id])
 
-  // Refresh grading status while the page is open without the admin regrading.
   useEffect(() => {
-    if (question?.id && refreshTimer.current === null) {
+    if (questions.length && refreshTimer.current === null) {
       refreshTimer.current = setInterval(() => {
-        loadMyAnswer(question.id)
+        loadAnswers(questions.map((q) => q.id))
       }, 10000)
     }
     return () => {
@@ -79,38 +72,96 @@ export default function PlayerHome() {
         refreshTimer.current = null
       }
     }
-  }, [question?.id, user.id])
+  }, [questions])
 
-  async function handleSubmit(e) {
+  function qTotal(q) {
+    if (Array.isArray(q.answer_parts) && q.answer_parts.length > 0)
+      return q.answer_parts.reduce((s, p) => s + (Number(p.points) || 0), 0)
+    return q.points ?? 1
+  }
+
+  function hintCount(qid) {
+    let count = 0
+    for (const key of Object.keys(shownHints))
+      if (key.startsWith(qid + ':') && shownHints[key]) count++
+    return count
+  }
+
+  function toggleHint(qid, i) {
+    const key = `${qid}:${i}`
+    setShownHints((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  function setDraft(qid, text) {
+    setDrafts((prev) => ({ ...prev, [qid]: text }))
+  }
+
+  async function handleSubmit(e, q) {
     e.preventDefault()
-    if (!question || !answer.trim()) return
-    setSubmitting(true)
+    const text = (drafts[q.id] ?? '').trim()
+    if (!text) return
+    setSubmitting(q.id)
     setError('')
-    const { data, error } = await supabase
+    const { data, error: insErr } = await supabase
       .from('answers')
       .insert({
-        question_id: question.id,
+        question_id: q.id,
         profile_id: user.id,
-        answer_text: answer.trim(),
-        hints_used: hintsUsed,
+        answer_text: text,
+        hints_used: hintCount(q.id),
       })
       .select()
       .maybeSingle()
-    if (error) {
-      setError(error.message)
-    } else {
-      setAnswer('')
-      setSubmission(data)
+    if (insErr) {
+      setError(insErr.message)
+      setSubmitting(null)
+      return
     }
-    setSubmitting(false)
+    setAnswers((prev) => ({ ...prev, [q.id]: data }))
+    setDrafts((prev) => ({ ...prev, [q.id]: '' }))
+    setSubmitting(null)
   }
 
-  if (loading) return <p className="muted">Loading today's question…</p>
+  function scorePill(a) {
+    if (!a) return null
+    if (a.status === 'pending') return <span className="pill warn">Under review</span>
+    const pts = a.points_earned ?? 0
+    if (pts > 0) return <span className="pill good">+{pts} pt{pts === 1 ? '' : 's'}</span>
+    if (pts === 0) return <span className="pill neutral">0 pts</span>
+    return <span className="pill bad">{pts} pts</span>
+  }
 
-  if (!question) {
+  function Breakdown({ a }) {
+    const pts = a.points_earned ?? 0
+    const base = pts + (a.hints_used ?? 0) * 2
+    return (
+      <div className="points-breakdown">
+        <span className="row-line">
+          <span className="muted">Base</span>
+          <span>+{base}</span>
+        </span>
+        {a.hints_used > 0 && (
+          <span className="row-line">
+            <span className="muted">
+              {a.hints_used} hint{a.hints_used > 1 ? 's' : ''} (−2 each)
+            </span>
+            <span className="bad-num">−{a.hints_used * 2}</span>
+          </span>
+        )}
+        <span className="row-line strong-line">
+          <span>Net</span>
+          <span>{pts > 0 ? `+${pts}` : pts}</span>
+        </span>
+      </div>
+    )
+  }
+
+  if (loading) return <p className="muted">Loading today's questions…</p>
+
+  if (questions.length === 0) {
     return (
       <div className="card center">
-        <h1>No question today</h1>
+        <h1>No questions today</h1>
         <p className="muted">
           An admin hasn't posted a question for {today}. Check back later!
         </p>
@@ -118,119 +169,109 @@ export default function PlayerHome() {
     )
   }
 
-  function scorePill(s) {
-    if (!s) return null
-    if (s.status === 'pending') return <span className="pill warn">Under review</span>
-    const pts = s.points_earned ?? 0
-    if (pts > 0) return <span className="pill good">+{pts} pt{pts === 1 ? '' : 's'}</span>
-    if (pts === 0) return <span className="pill neutral">0 pts</span>
-    return <span className="pill bad">{pts} pts</span>
-  }
-
-  function toggleHint(i) {
-    setShownHints((prev) => ({ ...prev, [i]: !prev[i] }))
-  }
-
-  const qTotal =
-    Array.isArray(question.answer_parts) && question.answer_parts.length > 0
-      ? question.answer_parts.reduce((s, p) => s + (Number(p.points) || 0), 0)
-      : question.points
-
-  const hintsUsed = Object.values(shownHints).filter(Boolean).length
-
   return (
     <div>
-      <div className="card">
-        <div className="row between">
-          <h2>Today's question</h2>
-          <span className="pill neutral">
-            worth {qTotal} pt{qTotal === 1 ? '' : 's'}
-          </span>
-        </div>
-        {question.image_url && (
-          <div className="media-box">
-            <img src={question.image_url} alt="Question" />
-          </div>
-        )}
-        {question.media_type === 'video' && question.media_url && (
-          <div className="media-box">
-            <video controls src={question.media_url} />
-          </div>
-        )}
-        {question.media_type === 'audio' && question.media_url && (
-          <div className="media-box">
-            <audio controls src={question.media_url} />
-          </div>
-        )}
-        <p>{question.text}</p>
+      {error && <p className="error">{error}</p>}
 
-        {Array.isArray(question.hints) && question.hints.length > 0 && (
-          <div className="hints">
-            <div className="row between" style={{ marginBottom: 6 }}>
-              <p className="muted" style={{ margin: 0 }}>Need a nudge?</p>
-              <span className="pill warn" style={{ fontSize: 10 }}>−2 pts per hint</span>
+      {questions.map((q, idx) => {
+        const total = qTotal(q)
+        const a = answers[q.id]
+        const hintsShown = Array.isArray(q.hints) && q.hints.length > 0
+        const hc = hintCount(q.id)
+
+        return (
+          <div key={q.id} className="card">
+            <div className="row between">
+              <h2 style={{ margin: 0 }}>
+                {questions.length > 1 && (
+                  <span className="pill info" style={{ marginRight: 8 }}>
+                    {idx + 1}/{questions.length}
+                  </span>
+                )}
+                {questions.length === 1 ? "Today's question" : `Question ${idx + 1}`}
+              </h2>
+              <span className="pill neutral">worth {total} pt{total === 1 ? '' : 's'}</span>
             </div>
-            <div className="row">
-              {question.hints.map((h, i) =>
-                shownHints[i] ? (
-                  <span key={i} className="hint-text">{h}</span>
-                ) : (
-                  <button key={i} type="button" className="btn ghost sm" onClick={() => toggleHint(i)}>
-                    Hint {i + 1}
+
+            {q.image_url && (
+              <div className="media-box">
+                <img src={q.image_url} alt="Question" />
+              </div>
+            )}
+            {q.media_type === 'video' && q.media_url && (
+              <div className="media-box">
+                <video controls src={q.media_url} />
+              </div>
+            )}
+            {q.media_type === 'audio' && q.media_url && (
+              <div className="media-box">
+                <audio controls src={q.media_url} />
+              </div>
+            )}
+            <p>{q.text}</p>
+
+            {hintsShown && (
+              <div className="hints">
+                <div className="row between" style={{ marginBottom: 6 }}>
+                  <p className="muted" style={{ margin: 0 }}>Need a nudge?</p>
+                  <span className="pill warn" style={{ fontSize: 10 }}>−2 pts per hint</span>
+                </div>
+                <div className="row">
+                  {q.hints.map((h, i) => {
+                    const key = `${q.id}:${i}`
+                    return shownHints[key] ? (
+                      <span key={i} className="hint-text">{h}</span>
+                    ) : (
+                      <button
+                        key={i}
+                        type="button"
+                        className="btn ghost sm"
+                        onClick={() => toggleHint(q.id, i)}
+                      >
+                        Hint {i + 1}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {a ? (
+              <>
+                <div className="row between">
+                  <strong>Your answer</strong>
+                  {scorePill(a)}
+                </div>
+                <p>{a.answer_text}</p>
+                {a.status === 'graded' && <Breakdown a={a} />}
+                {a.score === 1 && q.explanation && (
+                  <p className="muted">💡 {q.explanation}</p>
+                )}
+              </>
+            ) : (
+              <form onSubmit={(e) => handleSubmit(e, q)}>
+                <textarea
+                  placeholder="Type your answer…"
+                  value={drafts[q.id] ?? ''}
+                  onChange={(e) => setDraft(q.id, e.target.value)}
+                />
+                <div className="row" style={{ marginTop: 10 }}>
+                  <button
+                    className="btn"
+                    type="submit"
+                    disabled={submitting === q.id || !(drafts[q.id] ?? '').trim()}
+                  >
+                    {submitting === q.id ? 'Submitting…' : 'Submit answer'}
                   </button>
-                )
-              )}
-            </div>
+                  {hc > 0 && (
+                    <span className="pill warn">using {hc} hint{hc > 1 ? 's' : ''}</span>
+                  )}
+                </div>
+              </form>
+            )}
           </div>
-        )}
-      </div>
-
-      {submission ? (
-        <div className="card">
-          <div className="row between">
-            <strong>Your answer</strong>
-            {scorePill(submission)}
-          </div>
-          <p>{submission.answer_text}</p>
-          {submission.status === 'graded' && (
-            <div className="points-breakdown">
-              <span className="row-line">
-                <span className="muted">Base</span>
-                <span>+{(submission.points_earned ?? 0) + (submission.hints_used ?? 0) * 2}</span>
-              </span>
-              {submission.hints_used > 0 && (
-                <span className="row-line">
-                  <span className="muted">{submission.hints_used} hint{submission.hints_used > 1 ? 's' : ''} (−2 each)</span>
-                  <span className="bad-num">−{submission.hints_used * 2}</span>
-                </span>
-              )}
-              <span className="row-line strong-line">
-                <span>Net</span>
-                <span>{(submission.points_earned ?? 0) > 0 ? `+${submission.points_earned}` : submission.points_earned ?? 0}</span>
-              </span>
-            </div>
-          )}
-          {submission.score === 1 && question.explanation && (
-            <p className="muted">💡 {question.explanation}</p>
-          )}
-        </div>
-      ) : (
-        <form className="card" onSubmit={handleSubmit}>
-          <label htmlFor="answer">Your answer</label>
-          <textarea
-            id="answer"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Type your answer in your own words…"
-          />
-          <div className="row">
-            <button className="btn" type="submit" disabled={submitting || !answer.trim()}>
-              {submitting ? 'Submitting…' : 'Submit answer'}
-            </button>
-          </div>
-          {error && <p className="error">{error}</p>}
-        </form>
-      )}
+        )
+      })}
     </div>
   )
 }

@@ -8,6 +8,7 @@ export default function NewQuestion() {
   const navigate = useNavigate()
 
   const [text, setText] = useState('')
+  const [position, setPosition] = useState(0)
   const [date, setDate] = useState(todayStr())
   const [parts, setParts] = useState([{ text: '', points: 1 }])
   const [explanation, setExplanation] = useState('')
@@ -77,6 +78,7 @@ export default function NewQuestion() {
       const { error } = await supabase.from('questions').insert({
         text: text.trim(),
         question_date: date,
+        position: Math.max(0, Number(position) || 0),
         answer_parts: validParts,
         points: totalPoints || 1,
         hints: hints.map((h) => h.trim()).filter(Boolean),
@@ -256,14 +258,30 @@ export default function NewQuestion() {
         <label htmlFor="date" style={labelStyle}>
           Date (players will see it on this day)
         </label>
-        <input
-          id="date"
-          type="date"
-          style={inputStyle}
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-        />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            id="date"
+            type="date"
+            style={inputStyle}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
+          <label htmlFor="position" className="muted" style={{ margin: 0, whiteSpace: 'nowrap', fontSize: 12 }}>
+            Order:
+          </label>
+          <input
+            id="position"
+            type="number"
+            min={0}
+            style={{ ...inputStyle, width: 90, flexShrink: 0 }}
+            value={position}
+            onChange={(e) => setPosition(e.target.value)}
+          />
+        </div>
+        <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+          Same date = multiple questions that day. "Order" sorts them (0 first).
+        </p>
 
         <div className="row">
           <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

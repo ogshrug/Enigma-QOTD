@@ -16,6 +16,7 @@ export default function AdminDashboard() {
         .from('questions')
         .select('*')
         .order('question_date', { ascending: false })
+        .order('position', { ascending: true })
       const aRes = await supabase.from('answers').select('*')
       if (cancelled) return
       if (qRes.error) setError(qRes.error.message)
