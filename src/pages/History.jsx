@@ -83,6 +83,11 @@ export default function History() {
             ) : (
               <p className="muted">You: {a.answer_text}</p>
             )}
+            {a.review ? (
+              <p className="review-note" style={{ marginTop: 8 }}>
+                <strong>Review:</strong> {a.review}
+              </p>
+            ) : null}
           </li>
         ))}
       </ul>

@@ -1756,6 +1756,42 @@ ul.plain li {
   white-space: nowrap;
 }
 
+.review-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: var(--space-2) 0;
+}
+
+.review-edit label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}
+
+.review-edit textarea {
+  width: 100%;
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.review-note {
+  margin: var(--space-2) 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: rgba(246, 196, 83, 0.08);
+  border: 1px solid rgba(246, 196, 83, 0.22);
+  color: var(--on-surface);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
 /* ============================================================
    Links & focus
    ============================================================ */

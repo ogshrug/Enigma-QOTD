@@ -43,6 +43,7 @@ create table if not exists public.answers (
   hints_used int not null default 0,
   graded_by uuid references public.profiles(id),
   graded_at timestamptz,
+  review text not null default '',
   created_at timestamptz not null default now(),
   unique (question_id, profile_id)
 );
@@ -58,6 +59,7 @@ alter table public.questions add column if not exists media_url text not null de
 alter table public.questions add column if not exists hints text[] not null default '{}';
 alter table public.answers add column if not exists points_earned int;
 alter table public.answers add column if not exists hints_used int not null default 0;
+alter table public.answers add column if not exists review text not null default '';
 alter table public.profiles add column if not exists class_section text not null default '';
 
 -- ---------------------------------------------------------------------------

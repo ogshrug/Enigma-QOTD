@@ -12,6 +12,7 @@ export default function GradeAnswers() {
   const [busyId, setBusyId] = useState('')
   const [error, setError] = useState('')
   const [marks, setMarks] = useState({})
+  const [notes, setNotes] = useState({})
 
   async function fetchData() {
     const { data, error } = await supabase
@@ -92,6 +93,7 @@ export default function GradeAnswers() {
         status: 'graded',
         auto_matched: false,
         points_earned: points,
+        review: (notes[a.id] || '').trim(),
         graded_by: user.id,
         graded_at: new Date().toISOString(),
       })
@@ -114,6 +116,7 @@ export default function GradeAnswers() {
         status: 'graded',
         auto_matched: false,
         points_earned: points,
+        review: (notes[id] || '').trim(),
         graded_by: user.id,
         graded_at: new Date().toISOString(),
       })
@@ -134,6 +137,7 @@ export default function GradeAnswers() {
         auto_matched: false,
         points_earned: 0,
         score: 0,
+        review: '',
         graded_by: null,
         graded_at: null,
       })
@@ -235,6 +239,27 @@ export default function GradeAnswers() {
         ) : (
           <p className="muted">{a.answer_text}</p>
         )}
+
+        {a.status === 'pending' && (
+          <div className="review-edit">
+            <label htmlFor={`review-${a.id}`}>Review reply (shown to the player)</label>
+            <textarea
+              id={`review-${a.id}`}
+              rows={2}
+              placeholder="Optional — explain the grade, max 280 chars"
+              maxLength={280}
+              value={notes[a.id] || ''}
+              onChange={(e) =>
+                setNotes((prev) => ({ ...prev, [a.id]: e.target.value }))
+              }
+            />
+          </div>
+        )}
+        {a.status === 'graded' && a.review ? (
+          <p className="review-note">
+            <strong>Review:</strong> {a.review}
+          </p>
+        ) : null}
 
         <div className="row between" style={{ marginBottom: 0 }}>
           <span className="muted">

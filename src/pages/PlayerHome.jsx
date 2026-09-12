@@ -374,6 +374,11 @@ export default function PlayerHome() {
                     <p>{a.answer_text}</p>
                   )}
                   {a.status === 'graded' && <Breakdown a={a} />}
+                  {a.review ? (
+                    <p className="review-note">
+                      <strong>Review:</strong> {a.review}
+                    </p>
+                  ) : null}
                   {a.score === 1 && q.explanation && (
                     <p className="muted">💡 {q.explanation}</p>
                   )}
