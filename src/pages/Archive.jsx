@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { SkeletonCard } from '../components/Skeleton'
 import RichText from '../components/RichText'
 import { partLabel } from '../lib/answerParts'
+import { todayStr } from './PlayerHome'
 
 function pad(n) {
   return String(n).padStart(2, '0')
@@ -202,6 +203,7 @@ export default function Archive() {
 function QuestionRow({ q, index }) {
   const [revealed, setRevealed] = useState(false)
   const [hintsShown, setHintsShown] = useState(false)
+  const isToday = q.question_date === todayStr()
   const total = (q.answer_parts || []).reduce(
     (s, p) => s + (Number(p.points) || 0),
     q.points || 0
@@ -213,29 +215,38 @@ function QuestionRow({ q, index }) {
           Q{index + 1} · <RichText text={q.text} />
         </strong>
       </p>
-      {q.hints.length > 0 && (
-        <div className="row" style={{ margin: '0 0 8px' }}>
-          <button
-            type="button"
-            className="btn ghost sm"
-            onClick={() => setHintsShown((h) => !h)}
-          >
-            {hintsShown ? 'Hide hint' : `Reveal hint (${q.hints.length})`}
-          </button>
-          {hintsShown && (
-            <span className="pill warn">{q.hints.join(' · ')}</span>
+      {isToday ? (
+        <p className="subtle" style={{ margin: '0 0 8px' }}>
+          This is today&rsquo;s live question — hints and the answer unlock
+          tomorrow.
+        </p>
+      ) : (
+        <>
+          {q.hints.length > 0 && (
+            <div className="row" style={{ margin: '0 0 8px' }}>
+              <button
+                type="button"
+                className="btn ghost sm"
+                onClick={() => setHintsShown((h) => !h)}
+              >
+                {hintsShown ? 'Hide hint' : `Reveal hint (${q.hints.length})`}
+              </button>
+              {hintsShown && (
+                <span className="pill warn">{q.hints.join(' · ')}</span>
+              )}
+            </div>
           )}
-        </div>
+          <div className="row">
+            <button
+              type="button"
+              className="btn ghost sm"
+              onClick={() => setRevealed((r) => !r)}
+            >
+              {revealed ? 'Hide answer' : `Reveal answer (+${total} pts)`}
+            </button>
+          </div>
+        </>
       )}
-      <div className="row">
-        <button
-          type="button"
-          className="btn ghost sm"
-          onClick={() => setRevealed((r) => !r)}
-        >
-          {revealed ? 'Hide answer' : `Reveal answer (+${total} pts)`}
-        </button>
-      </div>
       {revealed && (
         <div className="part-grade-list" style={{ marginTop: 8 }}>
           {(q.answer_parts.length
