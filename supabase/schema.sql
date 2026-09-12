@@ -186,6 +186,7 @@ create trigger answers_auto_grade
 -- own rows. Points are ONLY ever earned through the daily question (the app
 -- has no past-question bank, and unique(question_id, profile_id) prevents
 -- repeats), so this is the full season total.
+drop function if exists public.leaderboard();
 create or replace function public.leaderboard()
 returns table (
   profile_id uuid,
