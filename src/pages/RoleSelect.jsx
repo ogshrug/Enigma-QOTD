@@ -72,11 +72,14 @@ export default function RoleSelect() {
       passphrase,
     })
     if (error) {
-      setError(
-        String(error.message).includes('INCORRECT_PASSPHRASE')
-          ? 'Incorrect passphrase.'
-          : error.message
-      )
+      const msg = String(error.message)
+      if (msg.includes('INCORRECT_PASSPHRASE')) {
+        setError('Incorrect passphrase.')
+      } else if (msg.includes('SESSION_EXPIRED') || msg.includes('foreign key')) {
+        setError('Your session expired — sign out and sign in again.')
+      } else {
+        setError(error.message)
+      }
       setBusy(false)
       return
     }
@@ -122,16 +125,28 @@ export default function RoleSelect() {
           <button className="btn" onClick={verifyAdmin} disabled={busy}>
             {busy ? 'Checking…' : 'Verify'}
           </button>
-          <button
-            className="btn ghost"
-            onClick={() => {
-              setMode('pick')
-              setPassphrase('')
-              setError('')
-            }}
-          >
-            Back
-          </button>
+          {error.includes('session expired') ? (
+            <button
+              className="btn bad"
+              onClick={async () => {
+                await supabase.auth.signOut()
+                window.location.href = '/login'
+              }}
+            >
+              Sign out
+            </button>
+          ) : (
+            <button
+              className="btn ghost"
+              onClick={() => {
+                setMode('pick')
+                setPassphrase('')
+                setError('')
+              }}
+            >
+              Back
+            </button>
+          )}
         </div>
         {error && <p style={{ color: 'var(--destructive)' }}>{error}</p>}
         {import.meta.env.DEV && (

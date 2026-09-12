@@ -245,6 +245,10 @@ begin
     raise exception 'you must be signed in';
   end if;
 
+  if not exists (select 1 from auth.users where id = uid) then
+    raise exception 'SESSION_EXPIRED: sign out and sign in again';
+  end if;
+
   select s.passphrase into expected from public.admin_secrets s where s.id = 1;
   if passphrase is distinct from expected then
     raise exception 'INCORRECT_PASSPHRASE';
