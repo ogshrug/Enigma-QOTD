@@ -52,15 +52,16 @@ export default function Archive() {
     setLoading(true)
     setSelected('')
     setQuestions(null)
+    const today = todayStr()
     supabase
       .from('questions')
       .select('question_date')
       .gte('question_date', range.from)
       .lte('question_date', range.to)
-      .eq('active', true)
       .then(({ data, error }) => {
         if (cancelled) return
-        setActiveDays(data ? [...new Set(data.map((q) => q.question_date))] : [])
+        const dates = error || !data ? [] : data.map((q) => q.question_date)
+        setActiveDays([...new Set(dates.filter((d) => d <= today))])
         setLoading(false)
       })
     return () => {
@@ -78,7 +79,6 @@ export default function Archive() {
       .from('questions')
       .select('id, text, question_date, position, keywords, points, answer_parts, hints, explanation')
       .eq('question_date', selected)
-      .eq('active', true)
       .order('position', { ascending: true })
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
@@ -181,7 +181,7 @@ export default function Archive() {
         (questions === null ? (
           <SkeletonCard />
         ) : questions.length === 0 ? (
-          <p className="muted">No active questions on this day.</p>
+          <p className="muted">No questions on this day.</p>
         ) : (
           <div className="card">
             <h3>
