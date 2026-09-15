@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { uploadToMediaBucket } from '../lib/upload'
 import { todayStr } from './PlayerHome'
@@ -50,29 +50,81 @@ function loadDraft() {
 
 export default function NewQuestion() {
   const navigate = useNavigate()
+  const { id } = useParams()
+  const isEdit = Boolean(id)
 
-  const initial = useState(() => loadDraft())[0]
-  const [text, setText] = useState(initial.text)
-  const [position, setPosition] = useState(initial.position)
-  const [date, setDate] = useState(initial.date)
-  const [parts, setParts] = useState(initial.parts)
-  const [explanation, setExplanation] = useState(initial.explanation)
-  const [active, setActive] = useState(initial.active)
+  const [text, setText] = useState('')
+  const [position, setPosition] = useState(0)
+  const [date, setDate] = useState(todayStr())
+  const [parts, setParts] = useState([{ text: '', points: 10 }])
+  const [explanation, setExplanation] = useState('')
+  const [active, setActive] = useState(true)
 
-  const [imageOn, setImageOn] = useState(initial.imageOn)
+  const [imageOn, setImageOn] = useState(false)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
 
-  const [mediaKind, setMediaKind] = useState(initial.mediaKind)
+  const [mediaKind, setMediaKind] = useState('none')
   const [mediaFile, setMediaFile] = useState(null)
   const [mediaPreview, setMediaPreview] = useState('')
 
-  const [hints, setHints] = useState(initial.hints)
+  const [originalImageUrl, setOriginalImageUrl] = useState('')
+  const [originalMediaUrl, setOriginalMediaUrl] = useState('')
+
+  const [hints, setHints] = useState([''])
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(isEdit)
 
   useEffect(() => {
+    if (!isEdit) {
+      const d = loadDraft()
+      setText(d.text)
+      setPosition(d.position)
+      setDate(d.date)
+      setParts(d.parts)
+      setExplanation(d.explanation)
+      setActive(d.active)
+      setImageOn(d.imageOn)
+      setMediaKind(d.mediaKind)
+      setHints(d.hints)
+      return
+    }
+    supabase
+      .from('questions')
+      .select('*')
+      .eq('id', id)
+      .single()
+      .then(({ data, error: loadErr }) => {
+        if (loadErr || !data) {
+          setError(loadErr?.message || 'Could not load this question.')
+          setLoading(false)
+          return
+        }
+        setText(data.text || '')
+        setPosition(Number(data.position) || 0)
+        setDate(data.question_date || todayStr())
+        setParts(
+          Array.isArray(data.answer_parts) && data.answer_parts.length > 0
+            ? data.answer_parts
+            : [{ text: '', points: 10 }]
+        )
+        setExplanation(data.explanation || '')
+        setActive(data.active !== false)
+        setImageOn(Boolean(data.image_url))
+        setMediaKind(data.media_type || 'none')
+        setHints(
+          Array.isArray(data.hints) && data.hints.length > 0 ? data.hints : ['']
+        )
+        setOriginalImageUrl(data.image_url || '')
+        setOriginalMediaUrl(data.media_url || '')
+        setLoading(false)
+      })
+  }, [id, isEdit])
+
+  useEffect(() => {
+    if (isEdit) return
     const timer = setTimeout(() => {
       try {
         sessionStorage.setItem(
@@ -94,7 +146,7 @@ export default function NewQuestion() {
       }
     }, 250)
     return () => clearTimeout(timer)
-  }, [text, explanation, hints, parts, date, position, active, mediaKind, imageOn])
+  }, [text, explanation, hints, parts, date, position, active, mediaKind, imageOn, isEdit])
 
   useEffect(() => {
     if (imageFile) {
@@ -133,6 +185,42 @@ export default function NewQuestion() {
     setBusy(true)
     setError('')
     try {
+      if (isEdit) {
+        const folder = `questions/${todayStr()}`
+        let image_url = originalImageUrl
+        if (imageOn) {
+          if (imageFile) image_url = await uploadToMediaBucket(imageFile, folder)
+        } else {
+          image_url = ''
+        }
+
+        let media_type = mediaKind
+        let media_url = originalMediaUrl
+        if (mediaKind !== 'none') {
+          if (mediaFile) media_url = await uploadToMediaBucket(mediaFile, folder)
+        } else {
+          media_type = 'none'
+          media_url = ''
+        }
+
+        const { error } = await supabase.from('questions').update({
+          text: text.trim(),
+          question_date: date,
+          position: Math.max(0, Number(position) || 0),
+          answer_parts: validParts,
+          points: totalPoints || 1,
+          hints: hints.map((h) => h.trim()).filter(Boolean),
+          explanation: explanation.trim() || '',
+          active,
+          image_url,
+          media_type,
+          media_url,
+        }).eq('id', id)
+        if (error) throw error
+        navigate('/admin')
+        return
+      }
+
       const folder = `questions/${todayStr()}`
       let image_url = ''
       if (imageOn && imageFile) image_url = await uploadToMediaBucket(imageFile, folder)
@@ -166,6 +254,13 @@ export default function NewQuestion() {
     }
   }
 
+  if (loading)
+    return (
+      <div className="card">
+        <p className="muted">Loading question…</p>
+      </div>
+    )
+
   const inputStyle = {
     width: '100%',
     background: 'var(--surface-container-lowest)',
@@ -180,7 +275,7 @@ export default function NewQuestion() {
 
   return (
     <div className="card">
-      <h2>New question</h2>
+      <h2>{isEdit ? 'Edit question' : 'New question'}</h2>
       <form onSubmit={handleSubmit}>
         <label htmlFor="text" style={labelStyle}>
           Question
@@ -361,7 +456,7 @@ export default function NewQuestion() {
 
         <div className="row">
           <button className="btn" type="submit" disabled={busy || !text.trim() || parts.every((p) => !p.text.trim())}>
-            {busy ? 'Saving…' : 'Save question'}
+            {busy ? 'Saving…' : isEdit ? 'Save changes' : 'Save question'}
           </button>
           <button className="btn ghost" type="button" onClick={() => navigate('/admin')}>
             Cancel

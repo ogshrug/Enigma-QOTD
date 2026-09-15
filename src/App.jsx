@@ -35,6 +35,7 @@ function Shell() {
             <Route element={<AdminOnly />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/new" element={<NewQuestion />} />
+              <Route path="/admin/edit/:id" element={<NewQuestion />} />
               <Route path="/admin/grade" element={<GradeAnswers />} />
             </Route>
           </Route>

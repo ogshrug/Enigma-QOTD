@@ -181,6 +181,7 @@ export default function AdminDashboard() {
                   ) : (
                     <span className="pill neutral">inactive</span>
                   )}
+                  <Link className="btn ghost sm" to={`/admin/edit/${q.id}`}>Edit</Link>
                   <button
                     type="button"
                     className="btn sm"
