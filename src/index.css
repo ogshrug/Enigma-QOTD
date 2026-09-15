@@ -2109,7 +2109,7 @@ h2 { font-size: 24px; letter-spacing: -.03em; }
 .hero-tile span { color: #718499; }
 .about-card { background: rgba(255,255,255,.62); }
 
-input, textarea, select { background: rgba(255,255,255,.75); color: var(--on-surface); border-color: var(--outline-strong); border-radius: 16px; }
+input, textarea, select { background: rgba(255,255,255,.75); color: var(--on-surface); border-color: var(--outline-strong); border-radius: 8px; }
 input:focus, textarea:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(82,159,224,.14); }
 .cal-day { background: rgba(255,255,255,.52); color: var(--on-surface-variant); border-radius: 50%; }
 .cal-day.has-q { background: rgba(184,224,249,.34); border-color: rgba(82,159,224,.28); color: var(--brand-press); }
