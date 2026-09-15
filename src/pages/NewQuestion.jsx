@@ -171,7 +171,7 @@ export default function NewQuestion() {
     background: 'var(--surface-container-lowest)',
     color: 'var(--on-surface)',
     border: '1px solid var(--outline-strong)',
-    borderRadius: 'var(--radius)',
+    borderRadius: 8,
     padding: '10px 12px',
     fontSize: 14,
     fontFamily: 'inherit',
