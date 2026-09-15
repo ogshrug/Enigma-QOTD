@@ -1780,7 +1780,7 @@ ul.plain li {
   background: var(--surface-container-lowest);
   color: var(--on-surface);
   border: 1px solid var(--outline-strong);
-  border-radius: var(--radius);
+  border-radius: 8px;
   padding: 10px 12px;
   font-size: 14px;
   font-family: inherit;
@@ -2154,6 +2154,8 @@ body { background-color: var(--surface-dim); background-image: linear-gradient(r
 .desktop-nav a:hover, .desktop-nav a.active { color: var(--brand-hover); background: var(--brand-softer); }
 .avatar-pop { background: #172b3e; border-color: var(--surface-bright); }
 .container { padding-top: var(--space-6); padding-bottom: var(--space-8); }
+.tabbar { background: rgba(12,24,37,.88); border-top-color: var(--hairline); }
+.tabbar .tab.active, .tabbar .tab.active .tab-icon { color: var(--brand-hover); }
 .container > * + * { margin-top: var(--space-5); }
 .card, .metric-card { background: rgba(24,43,63,.8); border-color: var(--surface-bright); }
 .card { padding: var(--space-5); margin-bottom: var(--space-5); }
