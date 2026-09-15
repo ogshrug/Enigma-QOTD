@@ -42,8 +42,10 @@
   --destructive-bg: rgba(241, 106, 106, 0.14);
 
   /* ---- Type ---- */
-  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
+  --font-body: 'Inter', 'DM Sans', system-ui, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 16px;
@@ -138,7 +140,7 @@ body {
 
 /* ---- Question bank calendar ---- */
 .cal-month {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--text-lg);
   color: var(--on-surface);
 }
@@ -169,7 +171,7 @@ body {
   border: 1px solid transparent;
   background: var(--surface-container-low);
   color: var(--text-muted);
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
   cursor: default;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
@@ -391,7 +393,7 @@ body {
 }
 
 .avatar-head strong {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--text-base);
   color: var(--on-surface);
   white-space: nowrap;
@@ -671,7 +673,7 @@ body {
 }
 
 .hero-tile strong {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-size: var(--text-base);
   letter-spacing: -0.01em;
 }
@@ -685,10 +687,14 @@ body {
 /* ============================================================
    Headings — type scale
    ============================================================ */
-h1,
+h1 {
+  font-family: var(--font-display);
+  color: var(--on-surface);
+}
+
 h2,
 h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   color: var(--on-surface);
 }
 
@@ -758,7 +764,7 @@ p {
 }
 
 .metric-card .metric-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -936,7 +942,7 @@ label {
 }
 
 .countdown-time {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: var(--text-lg);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
@@ -1140,7 +1146,7 @@ ul.plain li {
 }
 
 .footer-col h4 {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -1531,7 +1537,7 @@ ul.plain li {
 }
 
 .lb-score {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: var(--text-lg);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1633,7 +1639,7 @@ ul.plain li {
   background: var(--brand-softer);
   border: 1px solid rgba(18, 117, 226, 0.3);
   color: var(--brand-hover);
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: var(--text-sm);
 }
@@ -1660,7 +1666,7 @@ ul.plain li {
   flex-shrink: 0;
   min-width: 18px;
   color: var(--brand-hover);
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-weight: 600;
 }
 
@@ -1696,14 +1702,14 @@ ul.plain li {
 }
 
 .part-letter {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-weight: 700;
   font-size: var(--text-md);
   color: var(--brand-hover);
 }
 
 .part-worth {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: var(--text-sm);
   color: var(--status-active);
@@ -1738,7 +1744,7 @@ ul.plain li {
   background: var(--brand-softer);
   border: 1px solid rgba(18, 117, 226, 0.3);
   color: var(--brand-hover);
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: var(--text-xs);
 }
@@ -2038,9 +2044,10 @@ textarea:focus-visible,
   --on-surface-subtle: #899aab;
   --hairline: rgba(107, 144, 177, 0.17);
   --outline-strong: rgba(83, 125, 161, 0.3);
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
-  --font-mono: 'DM Mono', ui-monospace, monospace;
+  --font-display: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
+  --font-body: 'Inter', 'DM Sans', system-ui, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --radius: 999px;
   --radius-card: 24px;
   --radius-orb: 50%;
@@ -2080,7 +2087,7 @@ h2 { font-size: 24px; letter-spacing: -.03em; }
 .metric-card:nth-child(2) { background: rgba(245, 235, 255, .64); border-color: rgba(182, 139, 225, .3); }
 .metric-card:nth-child(3) { background: rgba(231, 249, 243, .68); border-color: rgba(91, 189, 164, .28); }
 .metric-card .metric-label, .cal-head, .footer-col h4 { font-family: var(--font-mono); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .12em; }
-.metric-card .metric-value { font-family: var(--font-display); font-size: 34px; font-weight: 600; }
+.metric-card .metric-value { font-family: var(--font-body); font-size: 34px; font-weight: 600; }
 .metric-card.streak .metric-value { color: #b680d4; }
 .metric-card.reset .metric-value { color: var(--brand-press); }
 
@@ -2105,7 +2112,7 @@ h2 { font-size: 24px; letter-spacing: -.03em; }
 .hero-tile:nth-child(3) { background: rgba(231, 249, 243, .52); }
 .hero-tile:hover { background: rgba(255,255,255,.8); border-color: rgba(82,159,224,.45); box-shadow: var(--shadow-float); }
 .hero-tile .orb, .about-row .orb { width: 46px; height: 46px; background: rgba(206,234,251,.5); border-color: rgba(82,159,224,.32); color: var(--brand); }
-.hero-tile strong { font-family: var(--font-display); font-size: 18px; }
+.hero-tile strong { font-family: var(--font-heading); font-size: 18px; }
 .hero-tile span { color: #718499; }
 .about-card { background: rgba(255,255,255,.62); }
 
@@ -2175,4 +2182,5 @@ input, textarea, select { background: rgba(8,22,35,.7); color: var(--on-surface)
 input::placeholder, textarea::placeholder { color: var(--on-surface-subtle); }
 .cal-day { background: rgba(255,255,255,.045); color: var(--on-surface-variant); } .cal-day.has-q { background: rgba(72,145,197,.2); color: var(--brand-hover); } .cal-day.selected { background: var(--brand-press); }
 .footer { background: rgba(8,20,31,.7); } .footer-col a { color: var(--on-surface-variant); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .container { padding-top: var(--space-5); } .container > * + * { margin-top: var(--space-4); } .card, .metric-card { padding: var(--space-4); } .hero-wrap { padding-block: var(--space-7) var(--space-6); } .hero-actions { margin: var(--space-4) 0 var(--space-5); } .hero-tiles { gap: var(--space-3); } .hero-tile { min-height: 0; border-radius: 18px; } }

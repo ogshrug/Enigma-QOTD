@@ -179,7 +179,7 @@ export default function GradeAnswers() {
             <strong>{p?.name || 'Anonymous'}</strong>
             {p?.class_section ? <span className="pill neutral">{p.class_section}</span> : null}
           </span>
-          <span className="aw-when muted">{answeredAt}</span>
+          <span className="aw-when muted mono">{answeredAt}</span>
         </div>
         <p>
           <strong><RichText text={a.questions?.text ?? 'Unknown question'} /></strong>

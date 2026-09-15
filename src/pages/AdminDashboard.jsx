@@ -174,7 +174,7 @@ export default function AdminDashboard() {
           {questions.map((q) => (
             <li key={q.id}>
               <div className="row between">
-                <span>{q.question_date}</span>
+                <span className="mono">{q.question_date}</span>
                 <div className="row" style={{ margin: 0 }}>
                   {q.active ? (
                     <span className="pill good">active</span>

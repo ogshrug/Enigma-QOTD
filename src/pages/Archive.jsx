@@ -185,7 +185,7 @@ export default function Archive() {
         ) : (
           <div className="card">
             <h3>
-              <span className="muted">{selected}</span>
+                <span className="muted mono">{selected}</span>
               {' · '}
               {questions.length} question{questions.length > 1 ? 's' : ''}
             </h3>

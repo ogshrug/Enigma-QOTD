@@ -65,7 +65,7 @@ export default function History() {
         {rows.map((a) => (
           <li key={a.id}>
             <div className="row between">
-              <span className="muted">
+              <span className="muted mono">
                 {a.questions?.question_date ?? new Date(a.created_at).toLocaleDateString()}
               </span>
               {pill(a)}
