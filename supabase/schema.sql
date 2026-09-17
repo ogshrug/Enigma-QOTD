@@ -49,6 +49,18 @@ create table if not exists public.answers (
 );
 
 -- Add the new columns if upgrading an existing database.
+-- Secret admin-only tracker: admins flag answers they suspect are AI-written.
+-- Lives in its own table (NOT on public.answers) so players can never read a
+-- flag about their own answer — RLS below is admin-only (default deny).
+create table if not exists public.ai_flags (
+  id uuid primary key default gen_random_uuid(),
+  answer_id uuid not null references public.answers(id) on delete cascade,
+  flagged_by uuid references public.profiles(id),
+  note text not null default '',
+  created_at timestamptz not null default now(),
+  unique (answer_id)
+);
+
 alter table public.questions add column if not exists position int not null default 0;
 alter table public.questions add column if not exists answer_phrase text not null default '';
 alter table public.questions add column if not exists answer_parts jsonb not null default '[]';
@@ -218,6 +230,51 @@ as $$
 $$;
 grant execute on function public.leaderboard() to authenticated, anon;
 
+-- Admin-only roster for the Players screen: EVERY player profile (left join,
+-- so players with zero answers still appear with 0 points), same scoring rule
+-- as leaderboard(). SECURITY DEFINER so it can see all profiles regardless of
+-- RLS, but it refuses to run for anyone who is not an admin.
+drop function if exists public.admin_player_scores();
+create or replace function public.admin_player_scores()
+returns table (
+  profile_id uuid,
+  player_name text,
+  email text,
+  avatar_url text,
+  class_section text,
+  joined_at timestamptz,
+  total_points bigint,
+  days_answered bigint
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'ADMIN_ONLY';
+  end if;
+
+  return query
+    select
+      p.id,
+      coalesce(nullif(p.name, ''), p.email, 'Anonymous'),
+      coalesce(p.email, ''),
+      coalesce(p.avatar_url, ''),
+      coalesce(p.class_section, ''),
+      p.created_at,
+      coalesce(sum(coalesce(a.points_earned, 0)) filter (where a.status = 'graded'), 0)::bigint,
+      count(a.id) filter (where a.status = 'graded')::bigint
+    from public.profiles p
+    left join public.answers a on a.profile_id = p.id and a.status = 'graded'
+    where p.role = 'player'
+    group by p.id, p.name, p.email, p.avatar_url, p.class_section, p.created_at
+    order by coalesce(sum(coalesce(a.points_earned, 0)) filter (where a.status = 'graded'), 0) desc, p.created_at asc;
+end;
+$$;
+grant execute on function public.admin_player_scores() to authenticated;
+
 -- Admin passphrase. Only the SECURITY DEFINER function below can read this
 -- table; players can never see it (no RLS policies -> deny all).
 create table if not exists public.admin_secrets (
@@ -333,6 +390,22 @@ alter table public.profiles enable row level security;
 alter table public.questions enable row level security;
 alter table public.answers enable row level security;
 alter table public.admin_secrets enable row level security;
+alter table public.ai_flags enable row level security;
+
+-- AI flags are strictly admin-only: no select/insert/delete policy exists for
+-- regular players, so the default-deny RLS keeps every flag fully invisible
+-- to the person who wrote the answer.
+drop policy if exists ai_flags_select on public.ai_flags;
+create policy ai_flags_select on public.ai_flags
+  for select using (public.is_admin());
+
+drop policy if exists ai_flags_insert on public.ai_flags;
+create policy ai_flags_insert on public.ai_flags
+  for insert with check (public.is_admin());
+
+drop policy if exists ai_flags_delete on public.ai_flags;
+create policy ai_flags_delete on public.ai_flags
+  for delete using (public.is_admin());
 
 drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles
@@ -385,3 +458,4 @@ create policy answers_update on public.answers
 create index if not exists idx_answers_profile on public.answers(profile_id);
 create index if not exists idx_answers_question on public.answers(question_id);
 create index if not exists idx_questions_date on public.questions(question_date, position asc);
+create index if not exists idx_ai_flags_answer on public.ai_flags(answer_id);

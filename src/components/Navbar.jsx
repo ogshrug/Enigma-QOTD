@@ -59,6 +59,20 @@ const Icons = {
       <path d="M22 4 12 14l-3-3" />
     </svg>
   ),
+  users: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+  flag: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+      <path d="M4 22V4" />
+      <path d="M4 4h14l-2.5 3.5L18 11H4" />
+    </svg>
+  ),
   user: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -182,8 +196,10 @@ export default function Navbar() {
   const tabs = isAdmin
     ? [
         { to: '/admin', label: 'Dashboard', icon: Icons.dashboard, end: true },
-        { to: '/admin/new', label: 'New', icon: Icons.edit },
+        { to: '/admin/players', label: 'Players', icon: Icons.users },
         { to: '/admin/grade', label: 'Grade', icon: Icons.grade },
+        { to: '/admin/flags', label: 'Flags', icon: Icons.flag },
+        { to: '/admin/new', label: 'New', icon: Icons.edit },
       ]
     : [
         { to: '/', label: 'Today', icon: Icons.today, end: true },

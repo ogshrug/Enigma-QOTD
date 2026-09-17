@@ -2186,3 +2186,29 @@ input::placeholder, textarea::placeholder { color: var(--on-surface-subtle); }
 .footer { background: rgba(8,20,31,.7); } .footer-col a { color: var(--on-surface-variant); }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .container { padding-top: var(--space-5); } .container > * + * { margin-top: var(--space-4); } .card, .metric-card { padding: var(--space-4); } .hero-wrap { padding-block: var(--space-7) var(--space-6); } .hero-actions { margin: var(--space-4) 0 var(--space-5); } .hero-tiles { gap: var(--space-3); } .hero-tile { min-height: 0; border-radius: 18px; } }
+
+/* ---------------------------------------------------------------------------
+   Admin: Players roster + secret AI-flag tracker
+   --------------------------------------------------------------------------- */
+.table-scroll { overflow-x: auto; }
+.players-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.players-table th { text-align: left; font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface-subtle); padding: 8px 10px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+.players-table td { padding: 10px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
+.players-table tbody tr:last-child td { border-bottom: 0; }
+.players-table .num { text-align: right; white-space: nowrap; }
+.players-table td.neg { color: #ff8fa3; }
+.pt-avatar-wrap { display: inline-flex; align-items: center; gap: 8px; }
+.pt-avatar, .pt-avatar.fb { width: 30px; height: 30px; border-radius: 50%; flex: none; }
+.pt-avatar.fb { display: inline-flex; align-items: center; justify-content: center; background: var(--brand-soft); border: 1px solid var(--surface-bright); color: var(--brand-hover); font-size: 11px; }
+
+.ai-flag-btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ai-flag-box { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ai-flag-pill { display: inline-flex; align-items: center; gap: 4px; background: rgba(142,62,71,.4); color: #ffd9dc; border-color: rgba(241,140,151,.38); }
+.ai-flag-note { max-width: 190px; font-size: 13px; padding: 4px 8px; }
+.flag-note { margin: 0 0 8px; font-size: 13px; color: #ffd9dc; background: rgba(142,62,71,.25); border: 1px solid rgba(241,140,151,.3); border-radius: 8px; padding: 6px 10px; }
+
+@media (max-width: 640px) {
+  .players-table { font-size: 13px; }
+  .players-table td, .players-table th { padding: 8px; }
+  .ai-flag-note { max-width: 140px; }
+}
