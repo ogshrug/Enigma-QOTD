@@ -15,6 +15,8 @@ import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import NewQuestion from './pages/NewQuestion'
 import GradeAnswers from './pages/GradeAnswers'
+import PlayersAdmin from './pages/PlayersAdmin'
+import AiFlags from './pages/AiFlags'
 
 function Shell() {
   const location = useLocation()
@@ -37,6 +39,8 @@ function Shell() {
               <Route path="/admin/new" element={<NewQuestion />} />
               <Route path="/admin/edit/:id" element={<NewQuestion />} />
               <Route path="/admin/grade" element={<GradeAnswers />} />
+              <Route path="/admin/players" element={<PlayersAdmin />} />
+              <Route path="/admin/flags" element={<AiFlags />} />
             </Route>
           </Route>
         </Routes>

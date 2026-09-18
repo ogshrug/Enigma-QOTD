@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
 import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
 import RichText from '../components/RichText'
+import AiFlagButton from '../components/AiFlagButton'
 
 export default function GradeAnswers() {
   const { user } = useAuth()
@@ -13,6 +14,21 @@ export default function GradeAnswers() {
   const [error, setError] = useState('')
   const [marks, setMarks] = useState({})
   const [notes, setNotes] = useState({})
+  const [flags, setFlags] = useState({})
+
+  async function refreshFlags() {
+    const { data, error } = await supabase
+      .from('ai_flags')
+      .select('id, answer_id, note, created_at, flagged_by')
+    if (error) {
+      // ai_flags may not exist yet if the SQL hasn't been re-run; grading must
+      // keep working, so swallow this instead of blocking the whole screen.
+      return
+    }
+    const map = {}
+    for (const f of data ?? []) map[f.answer_id] = f
+    setFlags(map)
+  }
 
   async function fetchData() {
     const { data, error } = await supabase
@@ -29,6 +45,7 @@ export default function GradeAnswers() {
   async function load() {
     setLoading(true)
     await fetchData()
+    await refreshFlags()
     setLoading(false)
   }
 
@@ -270,6 +287,11 @@ export default function GradeAnswers() {
               : 'No match — review'}
           </span>
           <div className="row" style={{ margin: 0 }}>
+            <AiFlagButton
+              answerId={a.id}
+              flag={flags[a.id] || null}
+              onChanged={refreshFlags}
+            />
             {a.hints_used > 0 && (
               <span className="pill warn" title="Revealed before submitting">
                 {a.hints_used} hint{a.hints_used > 1 ? 's' : ''}
