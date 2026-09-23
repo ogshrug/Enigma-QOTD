@@ -1,6 +1,6 @@
 # Daily Quiz
 
-Google login → pick **Player** or **Admin** (admin needs the passphrase `headboyaarav`) → admins post a free-text daily question → players answer it → answers are auto-graded against keywords with manual admin override.
+Google login → pick **Player** or **Admin** (admin needs the passphrase `enigmadminphrase`) → admins post a free-text daily question → players answer it → answers are auto-graded against keywords with manual admin override.
 
 ## Stack
 
