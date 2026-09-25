@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
 import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
+import AnswerText from '../components/AnswerText'
 import RichText from '../components/RichText'
 import AiFlagButton from '../components/AiFlagButton'
 
@@ -254,7 +255,7 @@ export default function GradeAnswers() {
             )}
           </div>
         ) : (
-          <p className="muted">{a.answer_text}</p>
+          <AnswerText text={a.answer_text} className="muted" />
         )}
 
         {a.status === 'pending' && (

@@ -4,8 +4,9 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import Countdown from '../components/Countdown'
 import { SkeletonCard, SkeletonKpis } from '../components/Skeleton'
-import { MULTI_DELIM, isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
+import { MULTI_DELIM, isMultiple, partLabel } from '../lib/answerParts'
 import RichText from '../components/RichText'
+import AnswerText from '../components/AnswerText'
 
 export function todayStr() {
   const d = new Date()
@@ -76,6 +77,23 @@ export default function PlayerHome() {
     }
   }
 
+  // Revealed hints are stored server-side so a refresh can't reset the penalty.
+  const loadHintReveals = async (qids) => {
+    if (!qids.length) return
+    const { data } = await supabase
+      .from('hint_reveals')
+      .select('question_id, hint_index')
+      .eq('profile_id', user.id)
+      .in('question_id', qids)
+    if (data) {
+      setShownHints((prev) => {
+        const next = { ...prev }
+        for (const r of data) next[`${r.question_id}:${r.hint_index}`] = true
+        return next
+      })
+    }
+  }
+
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -89,7 +107,8 @@ export default function PlayerHome() {
       if (cancelled) return
       const qs = data ?? []
       setQuestions(qs)
-      await loadAnswers(qs.map((q) => q.id))
+      await Promise.all([loadAnswers(qs.map((q) => q.id)), loadHintReveals(qs.map((q) => q.id))])
+      if (cancelled) return
       setLoading(false)
     }
     load()
@@ -141,9 +160,17 @@ export default function PlayerHome() {
     return count
   }
 
-  function toggleHint(qid, i) {
+  async function revealHint(qid, i) {
     const key = `${qid}:${i}`
-    setShownHints((prev) => ({ ...prev, [key]: !prev[key] }))
+    if (shownHints[key]) return
+    setShownHints((prev) => ({ ...prev, [key]: true }))
+    const { error: revErr } = await supabase
+      .from('hint_reveals')
+      .upsert(
+        { profile_id: user.id, question_id: qid, hint_index: i },
+        { onConflict: 'profile_id,question_id,hint_index', ignoreDuplicates: true }
+      )
+    if (revErr) console.error('Failed to record hint reveal:', revErr.message)
   }
 
   function setDraft(qid, i, text) {
@@ -345,7 +372,7 @@ export default function PlayerHome() {
                           key={i}
                           type="button"
                           className="btn ghost sm"
-                          onClick={() => toggleHint(q.id, i)}
+                          onClick={() => revealHint(q.id, i)}
                         >
                           Hint {i + 1}
                         </button>
@@ -361,18 +388,7 @@ export default function PlayerHome() {
                     <strong>Your answer</strong>
                     {scorePill(a)}
                   </div>
-                  {isMultiple(q) ? (
-                    <div className="segments">
-                      {splitAnswerText(a.answer_text).map((seg, i) => (
-                        <div className="segment-row" key={i}>
-                          <span className="seg-label">{partLabel(i)}</span>
-                          <span>{seg || '—'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>{a.answer_text}</p>
-                  )}
+                  <AnswerText text={a.answer_text} multi={isMultiple(q)} />
                   {a.status === 'graded' && <Breakdown a={a} />}
                   {a.review ? (
                     <p className="review-note">

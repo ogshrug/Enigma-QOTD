@@ -3,7 +3,8 @@ import { Navigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { SkeletonCard } from '../components/Skeleton'
-import { isMultiple, partLabel, splitAnswerText } from '../lib/answerParts'
+import { isMultiple } from '../lib/answerParts'
+import AnswerText from '../components/AnswerText'
 import RichText from '../components/RichText'
 
 export default function History() {
@@ -71,18 +72,13 @@ export default function History() {
               {pill(a)}
             </div>
             <RichText as="p" text={a.questions?.text ?? 'Unknown question'} />
-            {isMultiple(a.questions) ? (
-              <div className="segments" style={{ margin: '6px 0' }}>
-                {splitAnswerText(a.answer_text).map((seg, i) => (
-                  <div className="segment-row" key={i}>
-                    <span className="seg-label">{partLabel(i)}</span>
-                    <span>{seg || '—'}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="muted">You: {a.answer_text}</p>
-            )}
+            <AnswerText
+              text={a.answer_text}
+              multi={isMultiple(a.questions)}
+              prefix="You: "
+              className="muted"
+              style={{ margin: '6px 0' }}
+            />
             {a.review ? (
               <p className="review-note" style={{ marginTop: 8 }}>
                 <strong>Review:</strong> {a.review}
